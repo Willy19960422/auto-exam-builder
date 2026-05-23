@@ -4,28 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>英文科自動出題系統</title>
-  
+
   <!-- 載入 React 核心庫 -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
   <!-- 載入 Babel 讓瀏覽器能即時編譯 JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
+
   <!-- 載入 Mammoth 用於解析上傳的 Word 檔 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
-  <!-- React 應用程式的掛載點 -->
   <div id="root"></div>
 
-  <!-- 注意這裡的 type 是 text/babel，這會告訴 Babel 來編譯裡面的程式碼 -->
   <script type="text/babel">
     const { useState, useMemo } = React;
 
     /* ============================================================
-       英文科自動出題系統 (HTML 整合版)
-       包含：GAS 中繼站連線、Mammoth 模組載入、React 渲染
+       英文科自動出題系統 — HTML 整合版 v11（開啟時不預選，全部自己挑）
+       本版重點：強化 GAS 中繼站相容性與錯誤回報
        ============================================================ */
 
     function L(theme, words, grammar) { return { theme, words, grammar, demo: true }; }
@@ -33,7 +31,7 @@
 
     const JH = {
       "國中一年級": {
-        "第一冊": {
+        "第一冊（上學期）": {
           "Lesson 1": L("自我介紹",
             [{ en: "name", zh: "名字" }, { en: "student", zh: "學生" }, { en: "teacher", zh: "老師" },
              { en: "friend", zh: "朋友" }, { en: "class", zh: "班級" }, { en: "happy", zh: "快樂的" }],
@@ -74,7 +72,7 @@
                 { q: "___ is your favorite subject?", c: ["What", "Who", "How", "Whose"], a: 0 }]),
             ]),
         },
-        "第二冊": {
+        "第二冊（下學期）": {
           "Lesson 1": L("日常作息",
             [{ en: "morning", zh: "早上" }, { en: "breakfast", zh: "早餐" }, { en: "homework", zh: "作業" },
              { en: "dinner", zh: "晚餐" }, { en: "sleep", zh: "睡覺" }, { en: "early", zh: "早的" }],
@@ -97,7 +95,7 @@
         },
       },
       "國中二年級": {
-        "第三冊": {
+        "第三冊（上學期）": {
           "Lesson 1": L("環境保護",
             [{ en: "environment", zh: "環境" }, { en: "recycle", zh: "回收" }, { en: "pollution", zh: "汙染" },
              { en: "energy", zh: "能源" }, { en: "protect", zh: "保護" }, { en: "future", zh: "未來" }],
@@ -120,9 +118,30 @@
                 { q: "You ___ see a doctor.", c: ["should", "are", "do", "to"], a: 0 }]),
             ]),
         },
+        "第四冊（下學期）": {
+          "Lesson 1": L("旅遊與文化",
+            [{ en: "travel", zh: "旅行" }, { en: "culture", zh: "文化" }, { en: "country", zh: "國家" },
+             { en: "famous", zh: "有名的" }, { en: "visit", zh: "參觀" }, { en: "experience", zh: "經驗" }],
+            [
+              g("過去式", [
+                { q: "We ___ to Japan last year.", c: ["went", "go", "goes", "going"], a: 0 },
+                { q: "She ___ many photos yesterday.", c: ["took", "take", "takes", "taking"], a: 0 }]),
+              g("連接詞", [
+                { q: "It was tiring ___ fun.", c: ["but", "and", "or", "so"], a: 0 }]),
+            ]),
+          "Lesson 2": L("夢想志向",
+            [{ en: "dream", zh: "夢想" }, { en: "goal", zh: "目標" }, { en: "succeed", zh: "成功" },
+             { en: "effort", zh: "努力" }, { en: "achieve", zh: "達成" }, { en: "plan", zh: "計畫" }],
+            [
+              g("不定詞當受詞", [
+                { q: "She wants ___ a teacher.", c: ["to be", "be", "being", "is"], a: 0 }]),
+              g("動名詞當主詞", [
+                { q: "___ hard is important.", c: ["Working", "Work", "To working", "Works"], a: 0 }]),
+            ]),
+        },
       },
       "國中三年級": {
-        "第五冊": {
+        "第五冊（上學期）": {
           "Lesson 1": L("科技與生活",
             [{ en: "technology", zh: "科技" }, { en: "computer", zh: "電腦" }, { en: "internet", zh: "網路" },
              { en: "message", zh: "訊息" }, { en: "useful", zh: "有用的" }, { en: "change", zh: "改變" }],
@@ -134,12 +153,32 @@
               g("被動語態", [
                 { q: "The message ___ sent yesterday.", c: ["was", "is", "has", "be"], a: 0 }]),
             ]),
+          "Lesson 2": L("世界文化",
+            [{ en: "world", zh: "世界" }, { en: "language", zh: "語言" }, { en: "tradition", zh: "傳統" },
+             { en: "different", zh: "不同的" }, { en: "respect", zh: "尊重" }, { en: "global", zh: "全球的" }],
+            [
+              g("關係代名詞 which", [
+                { q: "This is a custom ___ comes from Japan.", c: ["which", "who", "whom", "whose"], a: 0 }]),
+              g("間接問句", [
+                { q: "I don't know ___ he wants.", c: ["what", "that", "if what", "which what"], a: 0 }]),
+            ]),
+        },
+        "第六冊（下學期）": {
+          "Lesson 1": L("畢業與展望",
+            [{ en: "graduate", zh: "畢業" }, { en: "memory", zh: "回憶" }, { en: "thankful", zh: "感謝的" },
+             { en: "future", zh: "未來" }, { en: "promise", zh: "承諾" }, { en: "grow", zh: "成長" }],
+            [
+              g("假設語氣", [
+                { q: "If I ___ a chance, I would thank her.", c: ["had", "have", "has", "having"], a: 0 }]),
+              g("分詞修飾", [
+                { q: "The student ___ on the stage is my friend.", c: ["standing", "stand", "stood", "stands"], a: 0 }]),
+            ]),
         },
       },
     };
     const EL = {
       "國小三年級": {
-        "第一冊": {
+        "第一冊（上學期）": {
           "Unit 1": L("打招呼",
             [{ en: "hello", zh: "哈囉" }, { en: "hi", zh: "嗨" }, { en: "good", zh: "好的" },
              { en: "morning", zh: "早晨" }, { en: "name", zh: "名字" }],
@@ -149,23 +188,69 @@
               g("I'm + 名字", [
                 { q: "Hello! ___ Tom.", c: ["I'm", "You're", "He's", "It's"], a: 0 }]),
             ]),
+          "Unit 2": L("教室物品",
+            [{ en: "book", zh: "書" }, { en: "pen", zh: "筆" }, { en: "desk", zh: "書桌" },
+             { en: "bag", zh: "書包" }, { en: "ruler", zh: "尺" }],
+            [
+              g("This is a...", [
+                { q: "___ a book.", c: ["This is", "This are", "These is", "It are"], a: 0 }]),
+            ]),
+        },
+        "第二冊（下學期）": {
+          "Unit 1": L("顏色",
+            [{ en: "red", zh: "紅色" }, { en: "blue", zh: "藍色" }, { en: "yellow", zh: "黃色" },
+             { en: "green", zh: "綠色" }, { en: "black", zh: "黑色" }],
+            [
+              g("顏色形容詞", [
+                { q: "The apple is ___.", c: ["red", "a red", "reds", "red color"], a: 0 }]),
+            ]),
+          "Unit 2": L("家人",
+            [{ en: "father", zh: "爸爸" }, { en: "mother", zh: "媽媽" }, { en: "sister", zh: "姊妹" },
+             { en: "brother", zh: "兄弟" }, { en: "baby", zh: "嬰兒" }],
+            [
+              g("所有格 my", [
+                { q: "This is ___ father.", c: ["my", "I", "me", "mine"], a: 0 }]),
+            ]),
         },
       },
       "國小四年級": {
-        "第三冊": {
+        "第三冊（上學期）": {
           "Unit 1": L("動物",
             [{ en: "cat", zh: "貓" }, { en: "dog", zh: "狗" }, { en: "bird", zh: "鳥" },
              { en: "fish", zh: "魚" }, { en: "rabbit", zh: "兔子" }],
             [
-              g("This is a...", [
-                { q: "___ a dog.", c: ["This is", "This are", "These is", "It are"], a: 0 }]),
               g("I like...", [
                 { q: "I ___ cats.", c: ["like", "likes", "liking", "am like"], a: 0 }]),
+              g("Do you like...?", [
+                { q: "___ you like dogs?", c: ["Do", "Does", "Are", "Is"], a: 0 }]),
+            ]),
+          "Unit 2": L("食物",
+            [{ en: "rice", zh: "飯" }, { en: "noodle", zh: "麵" }, { en: "egg", zh: "蛋" },
+             { en: "milk", zh: "牛奶" }, { en: "bread", zh: "麵包" }],
+            [
+              g("I want...", [
+                { q: "I ___ some milk.", c: ["want", "wants", "wanting", "am want"], a: 0 }]),
+            ]),
+        },
+        "第四冊（下學期）": {
+          "Unit 1": L("運動",
+            [{ en: "run", zh: "跑" }, { en: "jump", zh: "跳" }, { en: "swim", zh: "游泳" },
+             { en: "play", zh: "玩" }, { en: "ball", zh: "球" }],
+            [
+              g("can 能力", [
+                { q: "I ___ swim.", c: ["can", "am", "do", "is"], a: 0 }]),
+            ]),
+          "Unit 2": L("地點",
+            [{ en: "park", zh: "公園" }, { en: "zoo", zh: "動物園" }, { en: "home", zh: "家" },
+             { en: "school", zh: "學校" }, { en: "store", zh: "商店" }],
+            [
+              g("介系詞 at/in", [
+                { q: "He is ___ school.", c: ["at", "on", "of", "to"], a: 0 }]),
             ]),
         },
       },
       "國小五年級": {
-        "第五冊": {
+        "第五冊（上學期）": {
           "Unit 1": L("天氣與季節",
             [{ en: "weather", zh: "天氣" }, { en: "sunny", zh: "晴朗的" }, { en: "rainy", zh: "下雨的" },
              { en: "season", zh: "季節" }, { en: "cold", zh: "寒冷的" }, { en: "hot", zh: "炎熱的" }],
@@ -185,9 +270,25 @@
                 { q: "She ___ now.", c: ["is singing", "sing", "sings", "sang"], a: 0 }]),
             ]),
         },
+        "第六冊（下學期）": {
+          "Unit 1": L("興趣嗜好",
+            [{ en: "hobby", zh: "嗜好" }, { en: "music", zh: "音樂" }, { en: "movie", zh: "電影" },
+             { en: "game", zh: "遊戲" }, { en: "read", zh: "閱讀" }],
+            [
+              g("like + V-ing", [
+                { q: "I like ___ books.", c: ["reading", "read", "to reading", "reads"], a: 0 }]),
+            ]),
+          "Unit 2": L("購物",
+            [{ en: "buy", zh: "買" }, { en: "money", zh: "錢" }, { en: "cheap", zh: "便宜的" },
+             { en: "expensive", zh: "昂貴的" }, { en: "shop", zh: "商店" }],
+            [
+              g("How much...?", [
+                { q: "___ is it? — Ten dollars.", c: ["How much", "How many", "What", "Where"], a: 0 }]),
+            ]),
+        },
       },
       "國小六年級": {
-        "第七冊": {
+        "第七冊（上學期）": {
           "Unit 1": L("我的一天",
             [{ en: "wake", zh: "醒來" }, { en: "brush", zh: "刷（牙）" }, { en: "lunch", zh: "午餐" },
              { en: "study", zh: "讀書" }, { en: "tired", zh: "疲倦的" }, { en: "busy", zh: "忙碌的" }],
@@ -197,7 +298,16 @@
               g("頻率副詞", [
                 { q: "I ___ eat breakfast at home.", c: ["always", "am", "to", "a"], a: 0 }]),
             ]),
-          "Unit 2": L("未來夢想",
+          "Unit 2": L("情緒",
+            [{ en: "happy", zh: "快樂的" }, { en: "sad", zh: "難過的" }, { en: "angry", zh: "生氣的" },
+             { en: "afraid", zh: "害怕的" }, { en: "excited", zh: "興奮的" }],
+            [
+              g("Why...? Because...", [
+                { q: "___ are you sad?", c: ["Why", "What", "Who", "When"], a: 0 }]),
+            ]),
+        },
+        "第八冊（下學期）": {
+          "Unit 1": L("未來夢想",
             [{ en: "dream", zh: "夢想" }, { en: "doctor", zh: "醫生" }, { en: "pilot", zh: "飛行員" },
              { en: "future", zh: "未來" }, { en: "hope", zh: "希望" }, { en: "become", zh: "成為" }],
             [
@@ -205,6 +315,13 @@
                 { q: "I want ___ a doctor.", c: ["to be", "be", "being", "am"], a: 0 }]),
               g("未來式 will", [
                 { q: "I ___ study hard for my dream.", c: ["will", "am", "do", "to"], a: 0 }]),
+            ]),
+          "Unit 2": L("環境",
+            [{ en: "earth", zh: "地球" }, { en: "tree", zh: "樹" }, { en: "clean", zh: "乾淨的" },
+             { en: "water", zh: "水" }, { en: "save", zh: "節省" }],
+            [
+              g("祈使句", [
+                { q: "___ the water.", c: ["Save", "Saves", "Saving", "To save"], a: 0 }]),
             ]),
         },
       },
@@ -283,6 +400,13 @@
               g("比較結構", [
                 { q: "The more you save, ___ you have later.", c: ["the more", "more", "the most", "most"], a: 0 }]),
             ]),
+          "Lesson 2": L("媒體識讀",
+            [{ en: "media", zh: "媒體" }, { en: "source", zh: "來源" }, { en: "reliable", zh: "可靠的" },
+             { en: "opinion", zh: "意見" }, { en: "fact", zh: "事實" }, { en: "judge", zh: "判斷" }],
+            [
+              g("關係子句（非限定）", [
+                { q: "The news, ___ spread fast, was false.", c: ["which", "that", "who", "what"], a: 0 }]),
+            ]),
         },
       },
       "高中三年級": {
@@ -295,6 +419,13 @@
                 { q: "My mentor, ___ inspired me, is a doctor.", c: ["who", "which", "that", "whom"], a: 0 }]),
               g("倒裝句", [
                 { q: "Only after graduation ___ his goal.", c: ["did he achieve", "he achieved", "he did achieve", "achieved he"], a: 0 }]),
+            ]),
+          "Lesson 2": L("學術研究",
+            [{ en: "research", zh: "研究" }, { en: "analyze", zh: "分析" }, { en: "evidence", zh: "證據" },
+             { en: "conclusion", zh: "結論" }, { en: "theory", zh: "理論" }, { en: "method", zh: "方法" }],
+            [
+              g("名詞子句", [
+                { q: "The study shows ___ exercise helps memory.", c: ["that", "what", "which", "who"], a: 0 }]),
             ]),
         },
         "第六冊（下學期）": {
@@ -316,7 +447,6 @@
       "南一版": { "國小": EL, "國中": JH, "高中": SH },
     };
 
-    /* ===== 模擬考設定 ===== */
     const MOCK_EXAMS = {
       "國中教育會考": {
         target: "國三",
@@ -329,7 +459,6 @@
         structure: "字彙 10 題、語法 10 題、會話 5 題、綜合測驗 2 篇、閱讀測驗 3 篇。",
       },
     };
-    /* 考古題題庫 */
     const PAST_PAPERS = {
       "國中教育會考": [],
       "四技二專統測": [],
@@ -349,29 +478,30 @@
       const r = a.slice();
       for (let i = r.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [r[i], r[j]] = [r[j], r[i]];
+        const t = r[i]; r[i] = r[j]; r[j] = t;
       }
       return r;
     }
     const sample = (a, n) => shuffle(a).slice(0, n);
 
     function App() {
-      const [versions, setVersions] = useState(new Set(["康軒版"]));
-      const [stage, setStage] = useState("國中");
-      const [gradeLv, setGradeLv] = useState("國中一年級");
-      const [pickedLessons, setPickedLessons] = useState(new Set()); 
+      /* 一開啟什麼都不選，全部由使用者自己挑 */
+      const [versions, setVersions] = useState(new Set());
+      const [stage, setStage] = useState("");
+      const [gradeLv, setGradeLv] = useState("");
+      const [pickedLessons, setPickedLessons] = useState(new Set());
       const [typeCounts, setTypeCounts] = useState({
-        vocab_mc: 5, vocab_spell: 0, grammar: 5, translate: 0,
+        vocab_mc: 0, vocab_spell: 0, grammar: 0, translate: 0,
       });
-      const [mode, setMode] = useState("bank"); 
+      const [mode, setMode] = useState("");
       const [title, setTitle] = useState("");
       const [showKey, setShowKey] = useState(true);
 
       const [uploadName, setUploadName] = useState("");
       const [uploadData, setUploadData] = useState(null);
 
-      const [mockExam, setMockExam] = useState("國中教育會考");
-      const [mockSource, setMockSource] = useState("ai"); 
+      const [mockExam, setMockExam] = useState("");
+      const [mockSource, setMockSource] = useState("");
       const [mockCount, setMockCount] = useState(20);
 
       const [exam, setExam] = useState(null);
@@ -381,14 +511,15 @@
 
       const gradeLevels = useMemo(() => {
         const first = [...versions][0];
-        if (!first) return [];
-        return Object.keys(CURRICULUM[first][stage] || {});
+        if (!first || !stage) return [];
+        return Object.keys((CURRICULUM[first] || {})[stage] || {});
       }, [versions, stage]);
 
       const versionBooks = useMemo(() => {
-        const out = []; 
+        const out = [];
+        if (!stage || !gradeLv) return out;
         versions.forEach((v) => {
-          const books = (CURRICULUM[v][stage] || {})[gradeLv] || {};
+          const books = ((CURRICULUM[v] || {})[stage] || {})[gradeLv] || {};
           Object.entries(books).forEach(([bk, lessons]) => {
             Object.entries(lessons).forEach(([ln, data]) => {
               out.push({ version: v, book: bk, lesson: ln, data });
@@ -398,7 +529,7 @@
         return out;
       }, [versions, stage, gradeLv]);
 
-      const lKey = (v, b, l) => `${v}︙${b}︙${l}`;
+      const lKey = (v, b, l) => v + "︙" + b + "︙" + l;
 
       const scope = useMemo(() => {
         const words = [], grammar = [], lessonNames = [];
@@ -406,7 +537,7 @@
           if (pickedLessons.has(lKey(version, book, lesson))) {
             words.push(...data.words.map((w) => ({ ...w, from: lesson })));
             data.grammar.forEach((gr) => grammar.push({ ...gr, from: lesson }));
-            lessonNames.push(`${version} ${book} ${lesson}`);
+            lessonNames.push(version + " " + book + " " + lesson);
           }
         });
         return { words, grammar, lessonNames };
@@ -414,8 +545,7 @@
 
       const toggleVersion = (v) => {
         const n = new Set(versions);
-        if (n.has(v)) { if (n.size > 1) n.delete(v); } 
-        else n.add(v);
+        n.has(v) ? n.delete(v) : n.add(v);
         setVersions(n);
         setPickedLessons(new Set()); setExam(null);
       };
@@ -427,11 +557,10 @@
       const setCount = (id, v) =>
         setTypeCounts({ ...typeCounts, [id]: Math.max(0, Math.min(20, v)) });
 
+      /* 切換學段：年級一律清空，由使用者自己再選 */
       function changeStage(s) {
         setStage(s);
-        const first = [...versions][0];
-        const gl = Object.keys(CURRICULUM[first][s] || {});
-        setGradeLv(gl[0] || "");
+        setGradeLv("");
         setPickedLessons(new Set()); setExam(null);
       }
       function changeGrade(gv) {
@@ -456,10 +585,10 @@
                 Math.min(3, words.length - 1));
               let stem, correct, pool;
               if (askEn) {
-                stem = `「${w.en}」的中文意思是？`;
+                stem = "「" + w.en + "」的中文意思是？";
                 correct = w.zh; pool = [w.zh, ...others.map((d) => d.zh)];
               } else {
-                stem = `「${w.zh}」的英文是？`;
+                stem = "「" + w.zh + "」的英文是？";
                 correct = w.en; pool = [w.en, ...others.map((d) => d.en)];
               }
               while (pool.length < 4) pool.push("—");
@@ -472,7 +601,7 @@
             if (words.length < 1) { notes.push("單字填空：課次單字不足"); return; }
             const items = sample(words, n).map((w) => ({
               no: ++no,
-              stem: `（${w.zh}）  ${w.en[0]}${" _".repeat(w.en.length - 1)}`,
+              stem: "（" + w.zh + "）  " + w.en[0] + " _".repeat(w.en.length - 1),
               answer: w.en,
             }));
             sections.push({ name: "單字填空", kind: "spell", items });
@@ -491,15 +620,15 @@
             sections.push({ name: "文法選擇", kind: "mc", items, aiFill: shortBy });
             if (shortBy > 0) {
               notes.push(useFromBank === 0
-                ? `文法選擇：課次無例句，將由 AI 生成 ${shortBy} 題`
-                : `文法選擇：例句僅 ${useFromBank} 題，另由 AI 補 ${shortBy} 題`);
+                ? "文法選擇：課次無例句，將由 AI 生成 " + shortBy + " 題"
+                : "文法選擇：例句僅 " + useFromBank + " 題，另由 AI 補 " + shortBy + " 題");
             }
           }
           else if (t.id === "translate") {
             if (words.length < 1) { notes.push("中譯英：課次單字不足"); return; }
             const items = sample(words, n).map((w) => ({
               no: ++no,
-              stem: `請用「${w.en}（${w.zh}）」造一個英文句子。`,
+              stem: "請用「" + w.en + "（" + w.zh + "）」造一個英文句子。",
             }));
             sections.push({ name: "中譯英 / 造句", kind: "translate", items });
           }
@@ -510,50 +639,62 @@
       async function aiFillGrammar(num, startNo) {
         const { grammar } = scope;
         const grammarList = [...new Set(grammar.map((gr) => gr.point))].join("、");
-        const prompt = `你是台灣英語科出題老師。請為「${stage}${gradeLv}」程度的學生，針對下列文法重點出 ${num} 題文法選擇題：${grammarList || "（一般程度文法）"}。每題必須是「具體的英文句子挖空」，不可只問抽象觀念。嚴格只輸出 JSON：{"items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":正解索引}]}`;
-        
-        const data = await rawAI([{ role: "user", content: prompt }], 2000);
+        const prompt = "你是台灣英語科出題老師。請為「" + stage + gradeLv +
+          "」程度的學生，針對下列文法重點出 " + num + " 題文法選擇題：" +
+          (grammarList || "（一般程度文法）") +
+          "。每題必須是「具體的英文句子挖空」，不可只問抽象觀念。" +
+          '嚴格只輸出 JSON：{"items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":正解索引}]}';
+
+        let data;
+        try {
+          data = await rawAI([{ role: "user", content: prompt }], 2000);
+        } catch (e) {
+          data = await rawAI([{ role: "user", content: prompt }], 2000);
+        }
         let no = startNo;
-        return (data.items || []).map((it) => ({
-          no: ++no, stem: it.stem, opts: it.opts, ai: it.ai, fromAI: true,
-        }));
+        const items = (data.items || [])
+          .filter((it) => it && it.stem && Array.isArray(it.opts))
+          .map((it) => ({
+            no: ++no, stem: it.stem, opts: it.opts,
+            ai: typeof it.ai === "number" ? it.ai : 0, fromAI: true,
+          }));
+        if (items.length === 0) throw new Error("AI 未回傳可用題目");
+        return items;
       }
 
       async function buildFromAI() {
         const { words, grammar, lessonNames } = scope;
         const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
-        const wordList = words.map((w) => `${w.en}(${w.zh})`).join(", ");
+        const wordList = words.map((w) => w.en + "(" + w.zh + ")").join(", ");
         const grammarList = [...new Set(grammar.map((gr) => gr.point))].join("、");
-        const prompt = `你是台灣英語科出題老師。請依「${stage}${gradeLv}」課程，為下列範圍出題。
-【考試範圍】課次：${lessonNames.join("、") || "（未指定）"}
-範圍單字：${wordList || "（未提供）"}
-範圍文法：${grammarList || "（未提供）"}
-題型與題數：${chosen.map((t) => `${t.name} ${typeCounts[t.id]}題`).join("、")}。
-所有題目單字與文法都必須落在範圍內。文法題務必是具體英文句子挖空。
-嚴格只輸出 JSON：
-{"sections":[
- {"name":"單字選擇","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},
- {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},
- {"name":"中譯英","kind":"translate","items":[{"stem":"說明","zh":"中文句","answer":"英文翻譯"}]}
-]}
-難度符合台灣${gradeLv}，每題4選項。`;
-        
+        const prompt = "你是台灣英語科出題老師。請依「" + stage + gradeLv + "」課程，為下列範圍出題。\n" +
+          "【考試範圍】課次：" + (lessonNames.join("、") || "（未指定）") + "\n" +
+          "範圍單字：" + (wordList || "（未提供）") + "\n" +
+          "範圍文法：" + (grammarList || "（未提供）") + "\n" +
+          "題型與題數：" + chosen.map((t) => t.name + " " + typeCounts[t.id] + "題").join("、") + "。\n" +
+          "所有題目單字與文法都必須落在範圍內。文法題務必是具體英文句子挖空。\n" +
+          "嚴格只輸出 JSON：\n" +
+          '{"sections":[\n' +
+          ' {"name":"單字選擇","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"中譯英","kind":"translate","items":[{"stem":"說明","zh":"中文句","answer":"英文翻譯"}]}\n' +
+          "]}\n難度符合台灣" + gradeLv + "，每題4選項。";
+
         return wrapSections(await rawAI([{ role: "user", content: prompt }], 4000));
       }
 
       async function buildFromUpload() {
         const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
-        const instr = `你是台灣英語科出題老師。附件是一份老師上傳的英文考卷。請先分析它的題型、難度與出題風格，然後「仿照同樣的風格與難度」出一份全新的考卷（題目不可與原卷重複）。
-題型與題數：${chosen.map((t) => `${t.name} ${typeCounts[t.id]}題`).join("、")}。
-文法題必須是具體英文句子挖空。
-嚴格只輸出 JSON：
-{"sections":[
- {"name":"單字選擇","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},
- {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},
- {"name":"中譯英","kind":"translate","items":[{"stem":"說明","zh":"中文句","answer":"英文翻譯"}]}
-]}
-每題4選項。`;
-        
+        const instr = "你是台灣英語科出題老師。附件是一份老師上傳的英文考卷。" +
+          "請先分析它的題型、難度與出題風格，然後「仿照同樣的風格與難度」出一份全新的考卷（題目不可與原卷重複）。\n" +
+          "題型與題數：" + chosen.map((t) => t.name + " " + typeCounts[t.id] + "題").join("、") + "。\n" +
+          "文法題必須是具體英文句子挖空。\n嚴格只輸出 JSON：\n" +
+          '{"sections":[\n' +
+          ' {"name":"單字選擇","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"中譯英","kind":"translate","items":[{"stem":"說明","zh":"中文句","answer":"英文翻譯"}]}\n' +
+          "]}\n每題4選項。";
+
         const content = [];
         if (uploadData.kind === "pdf") {
           content.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: uploadData.base64 } });
@@ -562,7 +703,7 @@
           content.push({ type: "image", source: { type: "base64", media_type: uploadData.mediaType, data: uploadData.base64 } });
           content.push({ type: "text", text: instr });
         } else {
-          content.push({ type: "text", text: `${instr}\n\n--- 上傳考卷文字內容 ---\n${uploadData.text}` });
+          content.push({ type: "text", text: instr + "\n\n--- 上傳考卷文字內容 ---\n" + uploadData.text });
         }
         return wrapSections(await rawAI([{ role: "user", content }], 4000));
       }
@@ -578,21 +719,20 @@
             const opts = shuffle(it.opts);
             return { no: ++no, stem: it.stem, opts, ai: opts.indexOf(correct) };
           });
-          return { sections: [{ name: `${mockExam} 考古題`, kind: "mc", items }], total: no, notes: [] };
+          return { sections: [{ name: mockExam + " 考古題", kind: "mc", items }], total: no, notes: [] };
         }
 
-        const prompt = `你是台灣升學測驗的命題專家。請仿照「${mockExam}」英文科的題型結構與難度，出一份全新的模擬考卷（這是模擬題，不是官方考古題）。
-測驗對象：${info.target}。
-題型結構參考：${info.structure}
-本次請出總共約 ${mockCount} 題，題型與比例請貼近上述結構。
-嚴格只輸出 JSON：
-{"sections":[
- {"name":"字彙","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},
- {"name":"綜合測驗","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},
- {"name":"閱讀測驗","kind":"reading","items":[{"passage":"英文短文","qs":[{"q":"問題","opts":["A","B","C","D"],"ai":0}]}]}
-]}
-難度需符合 ${mockExam} 實際水準，每題4選項。`;
-        
+        const prompt = "你是台灣升學測驗的命題專家。請仿照「" + mockExam +
+          "」英文科的題型結構與難度，出一份全新的模擬考卷（這是模擬題，不是官方考古題）。\n" +
+          "測驗對象：" + info.target + "。\n題型結構參考：" + info.structure + "\n" +
+          "本次請出總共約 " + mockCount + " 題，題型與比例請貼近上述結構。\n" +
+          "嚴格只輸出 JSON：\n" +
+          '{"sections":[\n' +
+          ' {"name":"字彙","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"綜合測驗","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"閱讀測驗","kind":"reading","items":[{"passage":"英文短文","qs":[{"q":"問題","opts":["A","B","C","D"],"ai":0}]}]}\n' +
+          "]}\n難度需符合 " + mockExam + " 實際水準，每題4選項。";
+
         const parsed = await rawAI([{ role: "user", content: prompt }], 4000);
         let no = 0;
         (parsed.sections || []).forEach((s) => {
@@ -605,7 +745,7 @@
         return { sections: parsed.sections, total: no, notes: [] };
       }
 
-      /* ---------- 整合 GAS 中繼站的 API 呼叫 ---------- */
+      /* ---------- 整合 GAS 中繼站的 API 呼叫（v8 強化版） ---------- */
       async function rawAI(messages, maxTokens) {
         const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwa58tM_uduBmYemCOG92QhlmOVszAaGzq8YP_RdovkZzKQbT2v01MxIBZzQ3oC4cV5/exec";
 
@@ -615,38 +755,64 @@
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
+              model: "claude-sonnet-4-20250514",
               max_tokens: maxTokens || 4000,
               messages,
             }),
           });
         } catch (e) {
-          throw new Error(`無法連線到 GAS 中繼站（${e.message}）。請檢查網路狀態。`);
+          throw new Error("無法連線到 GAS 中繼站（" + e.message + "）。請確認網址正確、GAS 已部署為「任何人皆可存取」，並檢查網路。");
         }
 
         if (!res.ok) {
           let detail = "";
-          try { detail = (await res.text()).slice(0, 200); } catch {}
-          throw new Error(`中繼站回應錯誤 HTTP ${res.status}。${detail}`);
+          try { detail = (await res.text()).slice(0, 300); } catch (e2) {}
+          throw new Error("中繼站回應 HTTP " + res.status + "。" + detail);
+        }
+
+        let raw;
+        try {
+          raw = await res.text();
+        } catch (e3) {
+          throw new Error("無法讀取中繼站回應內容。");
+        }
+        if (raw.trim().startsWith("<")) {
+          throw new Error("中繼站回傳的是網頁而非資料，通常代表 GAS 部署權限不是「任何人」，或網址錯誤。");
         }
 
         let data;
         try {
-          data = await res.json();
-        } catch {
-          throw new Error("中繼站回應不是有效的 JSON 格式。");
+          data = JSON.parse(raw);
+        } catch (e4) {
+          throw new Error("中繼站回應不是有效 JSON。前 120 字：" + raw.slice(0, 120));
         }
 
-        if (data.type === "error" || data.error) {
-          const errMsg = data.error?.message || JSON.stringify(data.error);
-          throw new Error(`AI 服務錯誤：${errMsg}`);
+        if (data.error) {
+          const m = (data.error && data.error.message) ? data.error.message : JSON.stringify(data.error);
+          throw new Error("AI 服務錯誤：" + m);
+        }
+        if (data.type === "error") {
+          throw new Error("AI 服務錯誤：" + JSON.stringify(data));
         }
 
-        if (!data.content) {
-          throw new Error("AI 回應缺少 content 欄位。");
+        /* 取出 AI 回覆文字：相容多種可能的回傳結構 */
+        let text = "";
+        if (Array.isArray(data.content)) {
+          text = data.content.map(function (i) {
+            return i && i.type === "text" ? i.text : "";
+          }).join("");
+        } else if (typeof data.content === "string") {
+          text = data.content;
+        } else if (typeof data.text === "string") {
+          text = data.text;
+        } else if (typeof data.completion === "string") {
+          text = data.completion;
+        } else {
+          throw new Error("無法從中繼站回應取出 AI 內容。回應鍵：" + Object.keys(data).join(","));
         }
 
-        let text = data.content.map((i) => (i.type === "text" ? i.text : "")).join("");
         text = text.replace(/```json|```/g, "").trim();
+        if (!text) throw new Error("AI 回傳內容為空。");
 
         if (!text.startsWith("{")) {
           const s = text.indexOf("{");
@@ -656,8 +822,8 @@
 
         try {
           return JSON.parse(text);
-        } catch {
-          throw new Error(`AI 回傳的內容無法解析為題目（前 80 字：${text.slice(0, 80)}）`);
+        } catch (e5) {
+          throw new Error("AI 回傳內容無法解析為題目。前 80 字：" + text.slice(0, 80));
         }
       }
 
@@ -668,7 +834,6 @@
         return { sections: parsed.sections, total: no, notes: [] };
       }
 
-      /* ---------- 檔案處理 (整合全球 mammoth 變數) ---------- */
       async function handleFile(e) {
         const file = e.target.files[0];
         if (!file) return;
@@ -677,16 +842,15 @@
         const isPdf = file.type === "application/pdf" || lower.endsWith(".pdf");
         const isImg = file.type.startsWith("image/");
         const isWord = lower.endsWith(".docx") || lower.endsWith(".doc");
-        
+
         if (isWord) {
           try {
             const buf = await file.arrayBuffer();
-            // 直接呼叫已透過 CDN 載入的 window.mammoth
             const r = await window.mammoth.extractRawText({ arrayBuffer: buf });
             const txt = (r.value || "").trim();
             if (!txt) { setError("無法從 Word 讀到文字，請改用 PDF 或截圖。"); setUploadData(null); return; }
             setUploadData({ kind: "text", text: txt });
-          } catch { setError("Word 解析失敗，請改存 PDF 或截圖。"); setUploadData(null); }
+          } catch (err) { setError("Word 解析失敗，請改存 PDF 或截圖。"); setUploadData(null); }
           return;
         }
         if (isPdf) {
@@ -706,21 +870,25 @@
       async function handleGenerate() {
         setError("");
 
+        if (!mode) { setError("請先選擇出題模式。"); return; }
+
         if (mode === "mock") {
+          if (!mockExam) { setError("請選擇模擬考類型。"); return; }
+          if (!mockSource) { setError("請選擇題目來源。"); return; }
           setLoading(true);
-          setLoadMsg(mockSource === "ai" ? `生成 ${mockExam} 模擬卷中…` : "抽取考古題中…");
+          setLoadMsg(mockSource === "ai" ? "生成 " + mockExam + " 模擬卷中…" : "抽取考古題中…");
           try {
             const built = await buildFromMock();
             setExam({
               ...built,
-              title: title || `${mockExam} 英文科模擬試題`,
-              scopeNames: [mockSource === "ai" ? `${mockExam} 風格模擬卷（AI 生成）` : `${mockExam} 考古題題庫`],
+              title: title || (mockExam + " 英文科模擬試題"),
+              scopeNames: [mockSource === "ai" ? (mockExam + " 風格模擬卷（AI 生成）") : (mockExam + " 考古題題庫")],
             });
           } catch (e) {
             if (e.message === "empty-past") {
               setError("考古題題庫目前為空。請先匯入真實考古題，或改用「AI 模擬卷」。");
             } else {
-              setError("模擬卷生成失敗，請再試一次。");
+              setError("模擬卷生成失敗：" + e.message);
             }
           } finally { setLoading(false); setLoadMsg(""); }
           return;
@@ -728,15 +896,15 @@
 
         const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
         if (chosen.length === 0) { setError("請至少為一種題型設定題數。"); return; }
-        const titleFinal = title || `${stage}${gradeLv}英文科 隨堂測驗`;
+        const titleFinal = title || (stage + gradeLv + "英文科 隨堂測驗");
 
         if (mode === "upload") {
           if (!uploadData) { setError("請先上傳一份考卷檔案。"); return; }
           setLoading(true); setLoadMsg("分析上傳考卷並仿題中…");
           try {
             const built = await buildFromUpload();
-            setExam({ ...built, title: titleFinal, scopeNames: [`仿照上傳考卷：${uploadName}`] });
-          } catch (e) { setError(`考卷分析失敗：${e.message}`); }
+            setExam({ ...built, title: titleFinal, scopeNames: ["仿照上傳考卷：" + uploadName] });
+          } catch (e) { setError("考卷分析失敗：" + e.message); }
           finally { setLoading(false); setLoadMsg(""); }
           return;
         }
@@ -748,13 +916,13 @@
           const gSec = built.sections.find((s) => s.aiFill > 0);
           if (gSec) {
             setLoading(true);
-            setLoadMsg(`課次例句不足，AI 補出 ${gSec.aiFill} 題文法題中…`);
+            setLoadMsg("課次例句不足，AI 補出 " + gSec.aiFill + " 題文法題中…");
             try {
               const extra = await aiFillGrammar(gSec.aiFill, built.total);
               gSec.items = [...gSec.items, ...extra];
               built.total += extra.length;
-            } catch {
-              built.notes.push("AI 補文法題失敗，文法題僅含課次例句部分");
+            } catch (e) {
+              built.notes.push("AI 補文法題失敗（" + e.message + "）。文法題僅含課次例句 " + gSec.items.length + " 題。");
             } finally { setLoading(false); setLoadMsg(""); }
           }
           if (built.total === 0) {
@@ -767,21 +935,21 @@
           try {
             const built = await buildFromAI();
             setExam({ ...built, title: titleFinal, scopeNames: scope.lessonNames });
-          } catch { setError("AI 出題失敗，請再試一次或改用題庫模式。"); }
+          } catch (e) { setError("AI 出題失敗：" + e.message + "　可改用內建題庫模式。"); }
           finally { setLoading(false); setLoadMsg(""); }
         }
       }
 
       function exportWord() {
         const html = document.getElementById("exam-print").innerHTML;
-        const doc = `<html xmlns:w="urn:schemas-microsoft-com:office:word"><head>
-<meta charset="utf-8"><style>body{font-family:'Times New Roman',serif;font-size:13pt;
-line-height:1.9;}h2{text-align:center;}.sec{font-weight:bold;background:#eee;
-padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body></html>`;
+        const doc = '<html xmlns:w="urn:schemas-microsoft-com:office:word"><head>' +
+          '<meta charset="utf-8"><style>body{font-family:\'Times New Roman\',serif;font-size:13pt;' +
+          'line-height:1.9;}h2{text-align:center;}.sec{font-weight:bold;background:#eee;' +
+          'padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>' + html + '</body></html>';
         const blob = new Blob(["\ufeff" + doc], { type: "application/msword" });
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = `${exam.title}.doc`;
+        a.download = exam.title + ".doc";
         a.click();
       }
 
@@ -858,7 +1026,7 @@ padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body
                 <label style={S.uploadBox}>
                   <input type="file" accept=".pdf,.doc,.docx,image/*"
                     onChange={handleFile} style={{ display: "none" }} />
-                  {uploadName ? `已選擇：${uploadName}` : "點此選擇考卷檔案（PDF / Word / 圖片）"}
+                  {uploadName ? ("已選擇：" + uploadName) : "點此選擇考卷檔案（PDF / Word / 圖片）"}
                 </label>
               </Section>
             )}
@@ -1006,12 +1174,12 @@ padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body
           <hr style={S.hr} />
 
           {(exam.sections || []).map((sec, si) => {
-            const label = `${["一", "二", "三", "四", "五", "六"][si] || (si + 1)}、${sec.name}`;
+            const label = (["一", "二", "三", "四", "五", "六"][si] || (si + 1)) + "、" + sec.name;
 
             if (sec.kind === "reading") {
               const flat = [];
               (sec.items || []).forEach((p) => (p.qs || []).forEach((q) => flat.push(q)));
-              keyRows.push({ label, rows: flat.map((q) => `${q.no}. ${LETTERS[q.ai] || ""}`) });
+              keyRows.push({ label, rows: flat.map((q) => q.no + ". " + (LETTERS[q.ai] || "")) });
               return (
                 <div key={si}>
                   <div className="sec" style={S.secTitle}>{label}（共 {flat.length} 題）</div>
@@ -1032,7 +1200,7 @@ padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body
               );
             }
             if (sec.kind === "mc") {
-              keyRows.push({ label, rows: sec.items.map((it) => `${it.no}. ${LETTERS[it.ai] || ""}`) });
+              keyRows.push({ label, rows: sec.items.map((it) => it.no + ". " + (LETTERS[it.ai] || "")) });
               return (
                 <div key={si}>
                   <div className="sec" style={S.secTitle}>{label}（共 {sec.items.length} 題）</div>
@@ -1048,7 +1216,7 @@ padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body
               );
             }
             if (sec.kind === "spell") {
-              keyRows.push({ label, rows: sec.items.map((it) => `${it.no}. ${it.answer}`) });
+              keyRows.push({ label, rows: sec.items.map((it) => it.no + ". " + it.answer) });
               return (
                 <div key={si}>
                   <div className="sec" style={S.secTitle}>{label}（共 {sec.items.length} 題）</div>
@@ -1061,7 +1229,7 @@ padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body
               );
             }
             keyRows.push({
-              label, rows: sec.items.map((it) => `${it.no}. ${it.answer || "（參考老師範例）"}`),
+              label, rows: sec.items.map((it) => it.no + ". " + (it.answer || "（參考老師範例）")),
             });
             return (
               <div key={si}>
@@ -1128,100 +1296,99 @@ padding:4px;margin-top:14px;}.q{margin:8px 0;}</style></head><body>${html}</body
       page: { minHeight: "100vh", background: C.paper, padding: "28px 16px 70px",
         fontFamily: "'Noto Serif TC','Songti TC',serif", color: C.ink },
       header: { maxWidth: 880, margin: "0 auto", textAlign: "center",
-        border: `2px solid ${C.ink}`, background: C.card, padding: "26px 18px",
-        boxShadow: `7px 7px 0 ${C.ink}` },
+        border: "2px solid " + C.ink, background: C.card, padding: "26px 18px",
+        boxShadow: "7px 7px 0 " + C.ink },
       kicker: { fontSize: 11, letterSpacing: 2, color: C.gold, fontStyle: "italic" },
       h1: { fontSize: 30, fontWeight: 900, letterSpacing: 3, margin: "6px 0 4px" },
       sub: { fontSize: 14, color: "#5a6660" },
       demoBar: { maxWidth: 880, margin: "14px auto 0", background: "#fbf1d8",
-        border: `1.6px solid ${C.gold}`, padding: "10px 14px", fontSize: 12.5,
+        border: "1.6px solid " + C.gold, padding: "10px 14px", fontSize: 12.5,
         lineHeight: 1.7, color: "#6b5417" },
       card: { maxWidth: 880, margin: "16px auto 0", background: C.card,
-        border: `2px solid ${C.ink}`, boxShadow: "5px 5px 0 rgba(28,43,39,.14)",
+        border: "2px solid " + C.ink, boxShadow: "5px 5px 0 rgba(28,43,39,.14)",
         padding: "24px 24px 26px" },
       secHead: { display: "flex", alignItems: "center", gap: 9, fontWeight: 700,
-        fontSize: 15, letterSpacing: 1, borderBottom: `2px solid ${C.ink}`,
+        fontSize: 15, letterSpacing: 1, borderBottom: "2px solid " + C.ink,
         paddingBottom: 6, marginBottom: 13 },
       secNum: { background: C.accent, color: "#fff", minWidth: 24, height: 24,
         padding: "0 5px", display: "inline-flex", alignItems: "center",
         justifyContent: "center", fontSize: 13, borderRadius: 2 },
       row: { display: "flex", gap: 9, flexWrap: "wrap" },
       modeRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: 9 },
-      pill: { border: `1.6px solid ${C.ink}`, background: C.paper, padding: "9px 22px",
+      pill: { border: "1.6px solid " + C.ink, background: C.paper, padding: "9px 22px",
         cursor: "pointer", fontSize: 14, fontFamily: "inherit", color: C.ink },
       pillSmall: { padding: "7px 16px", fontSize: 13 },
-      pillOn: { background: C.accent, color: "#fff", boxShadow: `3px 3px 0 ${C.gold}` },
-      modeBtn: { flex: 1, minWidth: 150, border: `1.6px solid ${C.ink}`,
+      pillOn: { background: C.accent, color: "#fff", boxShadow: "3px 3px 0 " + C.gold },
+      modeBtn: { flex: 1, minWidth: 150, border: "1.6px solid " + C.ink,
         background: C.paper, padding: "13px 16px", cursor: "pointer" },
-      modeBtnOn: { background: C.accent, color: "#fff", boxShadow: `3px 3px 0 ${C.gold}` },
+      modeBtnOn: { background: C.accent, color: "#fff", boxShadow: "3px 3px 0 " + C.gold },
       mockNote: { marginTop: 9, fontSize: 13, color: "#5a6660",
         background: C.accentSoft, padding: "9px 12px", lineHeight: 1.7 },
-      uploadBox: { display: "block", border: `2px dashed ${C.ink}`, background: C.paper,
+      uploadBox: { display: "block", border: "2px dashed " + C.ink, background: C.paper,
         padding: "22px 16px", textAlign: "center", cursor: "pointer", fontSize: 14 },
       scopeHint: { fontSize: 13, color: "#5a6660", marginBottom: 11, lineHeight: 1.7 },
       versionBlock: { marginBottom: 12 },
       versionTag: { fontWeight: 700, fontSize: 13.5, color: C.gold,
-        borderBottom: `1.4px solid ${C.line}`, paddingBottom: 3, marginBottom: 8 },
-      bookBlock: { marginBottom: 12, border: `1.4px solid ${C.line}`, padding: "10px 12px" },
+        borderBottom: "1.4px solid " + C.line, paddingBottom: 3, marginBottom: 8 },
+      bookBlock: { marginBottom: 12, border: "1.4px solid " + C.line, padding: "10px 12px" },
       bookHead: { fontWeight: 700, fontSize: 14, marginBottom: 8, color: C.accent },
       lessonRow: { display: "flex", gap: 8, flexWrap: "wrap" },
-      lesson: { border: `1.5px solid ${C.ink}`, background: C.paper,
+      lesson: { border: "1.5px solid " + C.ink, background: C.paper,
         padding: "8px 13px", cursor: "pointer", minWidth: 110 },
-      lessonOn: { background: C.accent, color: "#fff", boxShadow: `3px 3px 0 ${C.gold}` },
+      lessonOn: { background: C.accent, color: "#fff", boxShadow: "3px 3px 0 " + C.gold },
       lessonTheme: { display: "block", fontSize: 11.5, opacity: 0.85, marginTop: 2 },
       scopeSummary: { marginTop: 6, fontSize: 13, color: C.accent,
         background: C.accentSoft, padding: "8px 11px", lineHeight: 1.7 },
       typeList: { display: "flex", flexDirection: "column", gap: 9 },
       typeRow: { display: "flex", alignItems: "center", justifyContent: "space-between",
-        border: `1.5px solid ${C.ink}`, background: C.paper, padding: "10px 14px", gap: 12 },
+        border: "1.5px solid " + C.ink, background: C.paper, padding: "10px 14px", gap: 12 },
       typeInfo: { display: "flex", flexDirection: "column" },
       typeDesc: { fontSize: 12, fontStyle: "italic", opacity: 0.8, marginTop: 1 },
       stepper: { display: "flex", alignItems: "center", gap: 4 },
-      stepBtn: { width: 30, height: 30, border: `1.6px solid ${C.ink}`,
+      stepBtn: { width: 30, height: 30, border: "1.6px solid " + C.ink,
         background: C.card, cursor: "pointer", fontSize: 16, fontFamily: "inherit",
         lineHeight: 1, color: C.ink },
       stepInput: { width: 52, height: 30, textAlign: "center", fontFamily: "inherit",
-        fontSize: 15, border: `1.6px solid ${C.ink}`, background: C.card, color: C.ink },
+        fontSize: 15, border: "1.6px solid " + C.ink, background: C.card, color: C.ink },
       stepUnit: { fontSize: 13, marginLeft: 2 },
       totalLine: { marginTop: 10, textAlign: "right", fontWeight: 700, fontSize: 14, color: C.accent },
       input: { fontFamily: "inherit", fontSize: 15, padding: "9px 11px",
-        border: `1.6px solid ${C.ink}`, background: C.paper, color: C.ink },
+        border: "1.6px solid " + C.ink, background: C.paper, color: C.ink },
       hint: { fontSize: 12, color: "#7d857f", fontStyle: "italic" },
       actions: { display: "flex", alignItems: "center", gap: 18, marginTop: 6, flexWrap: "wrap" },
       goBtn: { fontFamily: "inherit", fontWeight: 700, fontSize: 16, letterSpacing: 2,
-        color: "#fff", background: C.ink, border: `2px solid ${C.ink}`,
-        padding: "13px 32px", cursor: "pointer", boxShadow: `5px 5px 0 ${C.gold}` },
+        color: "#fff", background: C.ink, border: "2px solid " + C.ink,
+        padding: "13px 32px", cursor: "pointer", boxShadow: "5px 5px 0 " + C.gold },
       checkbox: { fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center" },
       error: { color: "#a3402c", fontSize: 13, marginTop: 10, lineHeight: 1.7 },
       warn: { color: "#a3402c", fontSize: 13, marginBottom: 12 },
       toolbar: { display: "flex", gap: 11, marginBottom: 16, flexWrap: "wrap" },
       toolBtn: { fontFamily: "inherit", fontWeight: 700, fontSize: 14, color: "#fff",
-        background: C.ink, border: `2px solid ${C.ink}`, padding: "10px 20px",
-        cursor: "pointer", boxShadow: `4px 4px 0 ${C.gold}` },
+        background: C.ink, border: "2px solid " + C.ink, padding: "10px 20px",
+        cursor: "pointer", boxShadow: "4px 4px 0 " + C.gold },
       toolBtnGhost: { fontFamily: "inherit", fontSize: 14, background: "transparent",
-        border: `1.6px solid ${C.ink}`, padding: "10px 18px", cursor: "pointer", color: C.ink },
+        border: "1.6px solid " + C.ink, padding: "10px 18px", cursor: "pointer", color: C.ink },
       examWrap: { fontSize: 15, lineHeight: 1.9 },
       examTitle: { textAlign: "center", fontSize: 22, fontWeight: 900, margin: 0 },
       scopeTag: { textAlign: "center", fontSize: 13, color: C.accent, marginTop: 4 },
       examMeta: { display: "flex", justifyContent: "space-between", fontSize: 13,
         marginTop: 12, flexWrap: "wrap", gap: 6 },
-      hr: { border: "none", borderTop: `2.5px double ${C.ink}`, margin: "10px 0 4px" },
+      hr: { border: "none", borderTop: "2.5px double " + C.ink, margin: "10px 0 4px" },
       secTitle: { fontWeight: 700, letterSpacing: 1, margin: "20px 0 6px",
-        background: C.accentSoft, borderLeft: `5px solid ${C.accent}`, padding: "6px 11px" },
+        background: C.accentSoft, borderLeft: "5px solid " + C.accent, padding: "6px 11px" },
       q: { margin: "10px 0" },
       qno: { color: C.accent, marginRight: 4 },
       choices: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1px 24px",
         marginTop: 4, fontSize: 14.5 },
-      passage: { background: "#faf8ef", border: `1px solid ${C.line}`,
+      passage: { background: "#faf8ef", border: "1px solid " + C.line,
         padding: "10px 13px", margin: "6px 0", fontSize: 14.5, lineHeight: 1.9 },
       answerLine: { marginTop: 4, color: "#555", letterSpacing: 1 },
-      keyBox: { marginTop: 26, borderTop: `2.5px double ${C.ink}`, paddingTop: 12 },
+      keyBox: { marginTop: 26, borderTop: "2.5px double " + C.ink, paddingTop: 12 },
       keyTitle: { fontWeight: 700, letterSpacing: 1, marginBottom: 8 },
       keyRow: { fontSize: 14, lineHeight: 1.9 },
     };
-    const PRINT_CSS = `@media print {.no-print{display:none!important;} body{background:#fff;}}`;
+    const PRINT_CSS = "@media print {.no-print{display:none!important;} body{background:#fff;}}";
 
-    // 將 React App 渲染到網頁畫面上
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
