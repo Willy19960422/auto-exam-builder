@@ -858,21 +858,23 @@
       }
 
       async function buildFromUpload() {
-        const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
-        const instr = "你是台灣英語科出題老師。附件是一份老師上傳的英文考卷。" +
-          "請先分析它的題型、難度與出題風格，然後「仿照同樣的風格與難度」出一份全新的考卷（題目不可與原卷重複）。\n" +
-          "題型與題數：" + chosen.map((t) => t.name + " " + typeCounts[t.id] + "題").join("、") + "。\n" +
-          "\n【最重要的出題規則】\n" +
+        const instr = "你是台灣英語科出題老師。附件是一份老師上傳的英文考卷。\n" +
+          "請先仔細分析這份考卷：它有哪些大題、每個大題是什麼題型、各有幾題、難度與出題風格。\n" +
+          "然後「仿照完全相同的題型結構與題數」出一份全新的考卷——" +
+          "原卷有幾個大題就出幾個大題，每個大題的題數與原卷一致，題目不可與原卷重複。\n" +
+          "\n【出題規則】\n" +
           "1. 單字選擇題：題幹必須是完整的英文句子並挖空成 ___，四個選項全部是英文。" +
           "絕對不可以出「某單字的中文意思是什麼」這種題目。\n" +
           "2. 文法選擇題：題幹是完整英文句子挖空，選項全英文。\n" +
-          "3. 除了中譯英題的中文句子之外，所有題幹與選項一律用英文，不要出現中文。\n" +
-          "\n嚴格只輸出 JSON：\n" +
+          "3. 閱讀測驗：仿照原卷的短文長度與題數。\n" +
+          "4. 除了中譯英題的中文句子之外，所有題幹與選項一律用英文。\n" +
+          "5. 不要使用 Markdown，不要用星號標記文字。\n" +
+          "\n嚴格只輸出 JSON（kind 用 mc / spell / translate / reading）：\n" +
           '{"sections":[\n' +
-          ' {"name":"單字選擇","kind":"mc","items":[{"stem":"含 ___ 的完整英文句子","opts":["英文A","英文B","英文C","英文D"],"ai":0}]},\n' +
-          ' {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"大題名稱","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["英文A","英文B","英文C","英文D"],"ai":0}]},\n' +
+          ' {"name":"閱讀測驗","kind":"reading","items":[{"passage":"英文短文","qs":[{"q":"英文問題","opts":["A","B","C","D"],"ai":0}]}]},\n' +
           ' {"name":"中譯英","kind":"translate","items":[{"stem":"請翻譯成英文","zh":"中文句","answer":"英文翻譯"}]}\n' +
-          "]}\n每題4選項。";
+          "]}\n每題選擇題 4 選項。";
 
         const content = [];
         if (uploadData.kind === "pdf") {
@@ -1122,20 +1124,23 @@
           return;
         }
 
-        const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
-        if (chosen.length === 0) { setError("請至少為一種題型設定題數。"); return; }
         const titleFinal = title || (stage + gradeLv + "英文科 隨堂測驗");
 
+        /* 上傳仿題：題型題數由 AI 依原卷判斷，不需檢查題數設定 */
         if (mode === "upload") {
           if (!uploadData) { setError("請先上傳一份考卷檔案。"); return; }
           setLoading(true); setLoadMsg("分析上傳考卷並仿題中…");
           try {
             const built = await buildFromUpload();
-            setExam({ ...built, title: titleFinal, scopeNames: ["仿照上傳考卷：" + uploadName] });
+            setExam({ ...built, title: title || "仿照上傳考卷 英文科試題",
+              scopeNames: ["仿照上傳考卷：" + uploadName] });
           } catch (e) { setError("考卷分析失敗：" + e.message); }
           finally { setLoading(false); setLoadMsg(""); }
           return;
         }
+
+        const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
+        if (chosen.length === 0) { setError("請至少為一種題型設定題數。"); return; }
 
         if (pickedLessons.size === 0) { setError("請至少勾選一個課次作為考試範圍。"); return; }
 
@@ -1222,7 +1227,9 @@
                         onClick={() => setMockExam(m)}>{m}</Pill>
                     ))}
                   </div>
-                  <div style={S.mockNote}>{MOCK_EXAMS[mockExam].note}</div>
+                  {mockExam && MOCK_EXAMS[mockExam] && (
+                    <div style={S.mockNote}>{MOCK_EXAMS[mockExam].note}</div>
+                  )}
                 </Section>
                 <Section num="3" title="題目來源">
                   <div style={S.row}>
@@ -1326,8 +1333,8 @@
               </React.Fragment>
             )}
 
-            {mode !== "mock" && (
-              <Section num={mode === "upload" ? "3" : "5"}
+            {(mode === "bank" || mode === "ai") && (
+              <Section num="5"
                 title="題型與題數（各自設定，0 = 不出）">
                 <div style={S.typeList}>
                   {TYPES.map((t) => (
