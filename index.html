@@ -485,6 +485,21 @@
     }
     const sample = (a, n) => shuffle(a).slice(0, n);
 
+    /* 清掉 AI 在選項或題幹自帶的標號，例如 "(A) who" → "who"
+       因為程式顯示時會自己加 (A)(B)(C)(D)，避免變成 "(A) (A) who" */
+    function cleanOption(text) {
+      if (typeof text !== "string") return text;
+      let s = text.trim();
+      /* 去掉開頭的 (A) （A） A. A、 A) A: 等各種標號寫法 */
+      s = s.replace(/^[\(（]?\s*[A-Da-d1-4]\s*[\)）\.、:：]\s*/, "");
+      return s.trim();
+    }
+    /* 一次清理整個選項陣列 */
+    function cleanOpts(opts) {
+      if (!Array.isArray(opts)) return opts;
+      return opts.map(cleanOption);
+    }
+
     function App() {
       /* 一開啟什麼都不選，全部由使用者自己挑 */
       const [versions, setVersions] = useState(new Set());
@@ -662,7 +677,7 @@
         const items = (data.items || [])
           .filter((it) => it && it.stem && Array.isArray(it.opts))
           .map((it) => ({
-            no: ++no, stem: it.stem, opts: it.opts,
+            no: ++no, stem: it.stem, opts: cleanOpts(it.opts),
             ai: typeof it.ai === "number" ? it.ai : 0, fromAI: true,
           }));
         if (items.length === 0) throw new Error("AI 未回傳可用題目");
@@ -755,7 +770,7 @@
               const p = await aiReadingPassage(thisQ, rangeText);
               const qs = (p.qs || []).slice(0, thisQ).map((q) => ({
                 no: ++no, q: q.q || "",
-                opts: Array.isArray(q.opts) ? q.opts : [],
+                opts: Array.isArray(q.opts) ? cleanOpts(q.opts) : [],
                 ai: typeof q.ai === "number" ? q.ai : 0,
               }));
               passages.push({ passage: p.passage || "", qs: qs });
@@ -811,7 +826,7 @@
             const arr = collected.slice(0, want)
               .filter((it) => it && it.stem && Array.isArray(it.opts))
               .map((it) => ({
-                no: ++no, stem: it.stem, opts: it.opts,
+                no: ++no, stem: it.stem, opts: cleanOpts(it.opts),
                 ai: typeof it.ai === "number" ? it.ai : 0,
               }));
             sections.push({ name: t.name, kind: "mc", items: arr });
@@ -880,9 +895,15 @@
         let no = 0;
         (parsed.sections || []).forEach((s) => {
           if (s.kind === "reading") {
-            (s.items || []).forEach((p) => (p.qs || []).forEach((q) => (q.no = ++no)));
+            (s.items || []).forEach((p) => (p.qs || []).forEach((q) => {
+              q.no = ++no;
+              if (Array.isArray(q.opts)) q.opts = cleanOpts(q.opts);
+            }));
           } else {
-            (s.items || []).forEach((it) => (it.no = ++no));
+            (s.items || []).forEach((it) => {
+              it.no = ++no;
+              if (Array.isArray(it.opts)) it.opts = cleanOpts(it.opts);
+            });
           }
         });
         return { sections: parsed.sections, total: no, notes: [] };
@@ -1005,8 +1026,18 @@
 
       function wrapSections(parsed) {
         let no = 0;
-        (parsed.sections || []).forEach((s) =>
-          (s.items || []).forEach((it) => (it.no = ++no)));
+        (parsed.sections || []).forEach((s) => {
+          (s.items || []).forEach((it) => {
+            it.no = ++no;
+            if (Array.isArray(it.opts)) it.opts = cleanOpts(it.opts);
+            /* 閱讀測驗題組內的小題也要清理 */
+            if (Array.isArray(it.qs)) {
+              it.qs.forEach((q) => {
+                if (Array.isArray(q.opts)) q.opts = cleanOpts(q.opts);
+              });
+            }
+          });
+        });
         return { sections: parsed.sections, total: no, notes: [] };
       }
 
