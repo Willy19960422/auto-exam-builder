@@ -500,6 +500,25 @@
       return opts.map(cleanOption);
     }
 
+    /* 清掉 AI 文字裡的 Markdown 符號（粗體 ** 、斜體 *、底線 _、標題 # 等）
+       因為網頁直接顯示純文字，這些符號會原樣印出來變成雜訊 */
+    function stripMarkdown(text) {
+      if (typeof text !== "string") return text;
+      let s = text;
+      s = s.replace(/\*\*\*([^*]+)\*\*\*/g, "$1"); /* ***粗斜體*** */
+      s = s.replace(/\*\*([^*]+)\*\*/g, "$1");     /* **粗體** */
+      s = s.replace(/\*([^*]+)\*/g, "$1");         /* *斜體* */
+      s = s.replace(/__([^_]+)__/g, "$1");         /* __粗體__ */
+      s = s.replace(/^#{1,6}\s+/gm, "");           /* # 標題 */
+      s = s.replace(/`([^`]+)`/g, "$1");           /* `程式碼` */
+      return s;
+    }
+    /* 題幹用的綜合清理：去 Markdown */
+    function cleanText(text) {
+      if (typeof text !== "string") return text;
+      return stripMarkdown(text).trim();
+    }
+
     function App() {
       /* 一開啟什麼都不選，全部由使用者自己挑 */
       const [versions, setVersions] = useState(new Set());
@@ -732,6 +751,8 @@
         const prompt = "你是台灣英語科出題老師。請依「" + stage + gradeLv + "」程度，" +
           "出一篇英文閱讀測驗。\n" + rangeText +
           "請寫一篇適合該程度的英文短文，並針對短文出 " + qNum + " 道單選題。\n" +
+          "★短文與題目都用「純文字」，絕對不要使用 Markdown 標記，" +
+          "不要用星號 ** 把單字標成粗體，不要用任何符號裝飾文字。\n" +
           "短文與題目、選項全部用英文。題目要測閱讀理解，選項各 4 個。\n" +
           "\n嚴格只輸出 JSON（不要任何其他文字）：\n" +
           '{"passage":"英文短文內容","qs":[{"q":"英文問題","opts":["A","B","C","D"],"ai":0}]}';
@@ -769,11 +790,11 @@
               setLoadMsg("AI 出題中…閱讀測驗（" + (done + thisQ) + "/" + want + "）");
               const p = await aiReadingPassage(thisQ, rangeText);
               const qs = (p.qs || []).slice(0, thisQ).map((q) => ({
-                no: ++no, q: q.q || "",
+                no: ++no, q: stripMarkdown(q.q || ""),
                 opts: Array.isArray(q.opts) ? cleanOpts(q.opts) : [],
                 ai: typeof q.ai === "number" ? q.ai : 0,
               }));
-              passages.push({ passage: p.passage || "", qs: qs });
+              passages.push({ passage: stripMarkdown(p.passage || ""), qs: qs });
               done += thisQ;
             }
             sections.push({ name: t.name, kind: "reading", items: passages });
@@ -1392,10 +1413,10 @@
                   <div className="sec" style={S.secTitle}>{label}（共 {flat.length} 題）</div>
                   {(sec.items || []).map((p, pi) => (
                     <div key={pi} style={{ marginBottom: 14 }}>
-                      <div style={S.passage}>{p.passage}</div>
+                      <div style={S.passage}>{cleanText(p.passage)}</div>
                       {(p.qs || []).map((q) => (
                         <div key={q.no} className="q" style={S.q}>
-                          <div><b style={S.qno}>{q.no}.</b> {q.q}</div>
+                          <div><b style={S.qno}>{q.no}.</b> {cleanText(q.q)}</div>
                           <div className="ch" style={S.choices}>
                             {q.opts.map((o, i) => <span key={i}>{LETTERS[i]} {o}</span>)}
                           </div>
@@ -1413,7 +1434,7 @@
                   <div className="sec" style={S.secTitle}>{label}（共 {sec.items.length} 題）</div>
                   {sec.items.map((it) => (
                     <div key={it.no} className="q" style={S.q}>
-                      <div><b style={S.qno}>{it.no}.</b> {it.stem.replace("___", "＿＿＿＿")}</div>
+                      <div><b style={S.qno}>{it.no}.</b> {cleanText(it.stem).replace("___", "＿＿＿＿")}</div>
                       <div className="ch" style={S.choices}>
                         {it.opts.map((o, i) => <span key={i}>{LETTERS[i]} {o}</span>)}
                       </div>
@@ -1429,7 +1450,7 @@
                   <div className="sec" style={S.secTitle}>{label}（共 {sec.items.length} 題）</div>
                   {sec.items.map((it) => (
                     <div key={it.no} className="q" style={S.q}>
-                      <b style={S.qno}>{it.no}.</b> {it.stem}
+                      <b style={S.qno}>{it.no}.</b> {cleanText(it.stem)}
                     </div>
                   ))}
                 </div>
@@ -1443,8 +1464,8 @@
                 <div className="sec" style={S.secTitle}>{label}（共 {sec.items.length} 題）</div>
                 {sec.items.map((it) => (
                   <div key={it.no} className="q" style={S.q}>
-                    <div><b style={S.qno}>{it.no}.</b> {it.stem}</div>
-                    {it.zh && <div style={{ marginTop: 2 }}>{it.zh}</div>}
+                    <div><b style={S.qno}>{it.no}.</b> {cleanText(it.stem)}</div>
+                    {it.zh && <div style={{ marginTop: 2 }}>{cleanText(it.zh)}</div>}
                     <div style={S.answerLine}>➜ ______________________________________</div>
                   </div>
                 ))}
