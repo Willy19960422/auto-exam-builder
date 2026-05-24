@@ -467,10 +467,11 @@
     const VERSIONS = ["康軒版", "翰林版", "南一版"];
     const STAGES = ["國小", "國中", "高中"];
     const TYPES = [
-      { id: "vocab_mc", name: "單字選擇", desc: "看英選中 / 看中選英" },
+      { id: "vocab_mc", name: "單字選擇", desc: "英文情境句挖空選字" },
       { id: "vocab_spell", name: "單字填空", desc: "看英文釋義或提示拼出單字" },
-      { id: "grammar", name: "文法選擇", desc: "課次文法重點例句挖空" },
-      { id: "translate", name: "中譯英", desc: "用課次單字造句翻譯" },
+      { id: "grammar", name: "文法選擇", desc: "英文句子挖空考文法" },
+      { id: "translate", name: "中譯英", desc: "中文句翻成英文" },
+      { id: "reading", name: "閱讀測驗", desc: "英文短文＋題組（題數=題目總數）" },
     ];
     const LETTERS = ["(A)", "(B)", "(C)", "(D)"];
 
@@ -491,7 +492,7 @@
       const [gradeLv, setGradeLv] = useState("");
       const [pickedLessons, setPickedLessons] = useState(new Set());
       const [typeCounts, setTypeCounts] = useState({
-        vocab_mc: 0, vocab_spell: 0, grammar: 0, translate: 0,
+        vocab_mc: 0, vocab_spell: 0, grammar: 0, translate: 0, reading: 0,
       });
       const [mode, setMode] = useState("");
       const [title, setTitle] = useState("");
@@ -634,6 +635,10 @@
             }));
             sections.push({ name: "中譯英 / 造句", kind: "translate", items });
           }
+          else if (t.id === "reading") {
+            /* 內建題庫沒有閱讀短文資料，提示改用 AI 模式 */
+            notes.push("閱讀測驗：內建題庫無短文資料，閱讀測驗請改用「AI 生成」模式");
+          }
         });
         return { sections, total: no, notes };
       }
@@ -670,9 +675,14 @@
           "1. 單字選擇題：題幹必須是一個「完整的英文句子」，把要考的單字挖空成 ___，" +
           "四個選項全部是英文單字。絕對不可以出「某單字的中文意思是什麼」這種題目。\n" +
           "   範例：The weather is very ___ today, so we can play outside. (A) sunny (B) rainy (C) windy (D) cloudy\n" +
-          "2. 單字填空題：給一段「英文釋義」(definition in English)，學生依釋義拼出單字。" +
-          "可附首字母與字數提示。釋義必須用英文，不可用中文。\n" +
-          "   範例：Definition: not cold; having a high temperature.  Answer: h _ _ (3 letters)\n" +
+          "2. 單字填空題：給一段「英文釋義」(definition in English)，學生依釋義拼出單字。\n" +
+          "   ★每一題都「必須」在釋義後面附上提示，格式固定為：\n" +
+          "     釋義文字 + 首字母 + 空格底線（每個字母一個底線）+ (字數 letters)\n" +
+          "   ★範例（每題都要長這樣，不可省略提示）：\n" +
+          "     Definition: not cold; having a high temperature. h _ _ (3 letters)\n" +
+          "     Definition: a person who teaches students. t _ _ _ _ _ _ (7 letters)\n" +
+          "   ★釋義必須全英文。每一題考的單字都要不同，不可重複。\n" +
+          "   ★stem 欄位請放「完整的釋義加提示」，answer 放正確單字。\n" +
           "3. 文法選擇題：題幹是完整英文句子挖空，選項全英文。\n" +
           "4. 中譯英題：給一個中文句子，學生翻成英文（這題型本來就含中文，屬正常）。\n" +
           "5. 除了中譯英題的中文句子之外，所有題幹和選項一律使用英文，不要出現中文。\n" +
@@ -702,6 +712,18 @@
         return (data.items || []);
       }
 
+      /* 閱讀測驗：每次產生「一篇短文 + 若干小題」 */
+      async function aiReadingPassage(qNum, rangeText) {
+        const prompt = "你是台灣英語科出題老師。請依「" + stage + gradeLv + "」程度，" +
+          "出一篇英文閱讀測驗。\n" + rangeText +
+          "請寫一篇適合該程度的英文短文，並針對短文出 " + qNum + " 道單選題。\n" +
+          "短文與題目、選項全部用英文。題目要測閱讀理解，選項各 4 個。\n" +
+          "\n嚴格只輸出 JSON（不要任何其他文字）：\n" +
+          '{"passage":"英文短文內容","qs":[{"q":"英文問題","opts":["A","B","C","D"],"ai":0}]}';
+        const data = await rawAI([{ role: "user", content: prompt }], 4000);
+        return data;
+      }
+
       async function buildFromAI() {
         const { words, grammar, lessonNames } = scope;
         const wordList = words.map((w) => w.en + "(" + w.zh + ")").join(", ");
@@ -714,14 +736,36 @@
         const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
         const BATCH = 12; /* 每批最多 12 題，安全不截斷 */
         const sections = [];
+        const aiNotes = [];
         let no = 0;
 
         /* 逐題型處理，每題型內再分批 */
         for (let ti = 0; ti < chosen.length; ti++) {
           const t = chosen[ti];
           const want = typeCounts[t.id];
-          let collected = [];
 
+          /* 閱讀測驗：特殊處理，一篇短文一篇短文生 */
+          if (t.id === "reading") {
+            const QS_PER_PASSAGE = 4; /* 每篇短文出 4 小題 */
+            const passages = [];
+            let done = 0;
+            while (done < want) {
+              const thisQ = Math.min(QS_PER_PASSAGE, want - done);
+              setLoadMsg("AI 出題中…閱讀測驗（" + (done + thisQ) + "/" + want + "）");
+              const p = await aiReadingPassage(thisQ, rangeText);
+              const qs = (p.qs || []).slice(0, thisQ).map((q) => ({
+                no: ++no, q: q.q || "",
+                opts: Array.isArray(q.opts) ? q.opts : [],
+                ai: typeof q.ai === "number" ? q.ai : 0,
+              }));
+              passages.push({ passage: p.passage || "", qs: qs });
+              done += thisQ;
+            }
+            sections.push({ name: t.name, kind: "reading", items: passages });
+            continue;
+          }
+
+          let collected = [];
           for (let got = 0; got < want; got += BATCH) {
             const thisBatch = Math.min(BATCH, want - got);
             setLoadMsg("AI 出題中…" + t.name + "（" +
@@ -738,10 +782,31 @@
             }));
             sections.push({ name: t.name, kind: "translate", items: arr });
           } else if (t.id === "vocab_spell") {
-            const arr = collected.slice(0, want).map((it) => ({
-              no: ++no, stem: it.stem || "", answer: it.answer || "",
-            }));
+            /* 去重複：同一個 answer 只留一題 */
+            const seen = {};
+            const uniq = [];
+            collected.forEach((it) => {
+              const ans = (it.answer || "").trim().toLowerCase();
+              if (ans && !seen[ans]) { seen[ans] = true; uniq.push(it); }
+            });
+            const arr = uniq.slice(0, want).map((it) => {
+              const ans = (it.answer || "").trim();
+              let stem = (it.stem || "").trim();
+              /* 保險：若 stem 沒有附「底線提示」，程式自動補上 */
+              const hasHint = stem.indexOf("_") !== -1 || /\(\d+ letters?\)/.test(stem);
+              if (ans && !hasHint) {
+                const hint = ans[0] + " _".repeat(Math.max(0, ans.length - 1))
+                  + " (" + ans.length + " letters)";
+                /* 去掉 stem 結尾可能殘留的 Answer: 字樣 */
+                stem = stem.replace(/answer\s*[:：]?\s*$/i, "").trim();
+                stem = stem + "  " + hint;
+              }
+              return { no: ++no, stem: stem, answer: ans };
+            });
             sections.push({ name: t.name, kind: "spell", items: arr });
+            if (arr.length < want) {
+              aiNotes.push("單字填空：AI 出現重複，去重後為 " + arr.length + " 題");
+            }
           } else {
             const arr = collected.slice(0, want)
               .filter((it) => it && it.stem && Array.isArray(it.opts))
@@ -753,7 +818,7 @@
           }
         }
 
-        return { sections: sections, total: no, notes: [] };
+        return { sections: sections, total: no, notes: aiNotes };
       }
 
       async function buildFromUpload() {
