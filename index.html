@@ -468,7 +468,7 @@
     const STAGES = ["國小", "國中", "高中"];
     const TYPES = [
       { id: "vocab_mc", name: "單字選擇", desc: "看英選中 / 看中選英" },
-      { id: "vocab_spell", name: "單字填空", desc: "依中文與首字母拼字" },
+      { id: "vocab_spell", name: "單字填空", desc: "看英文釋義或提示拼出單字" },
       { id: "grammar", name: "文法選擇", desc: "課次文法重點例句挖空" },
       { id: "translate", name: "中譯英", desc: "用課次單字造句翻譯" },
     ];
@@ -555,7 +555,7 @@
         setPickedLessons(n);
       };
       const setCount = (id, v) =>
-        setTypeCounts({ ...typeCounts, [id]: Math.max(0, Math.min(20, v)) });
+        setTypeCounts({ ...typeCounts, [id]: Math.max(0, Math.min(40, v)) });
 
       /* 切換學段：年級一律清空，由使用者自己再選 */
       function changeStage(s) {
@@ -601,10 +601,12 @@
             if (words.length < 1) { notes.push("單字填空：課次單字不足"); return; }
             const items = sample(words, n).map((w) => ({
               no: ++no,
-              stem: "（" + w.zh + "）  " + w.en[0] + " _".repeat(w.en.length - 1),
+              stem: "Spell the word ("
+                + w.en.length + " letters): "
+                + w.en[0] + " _".repeat(w.en.length - 1),
               answer: w.en,
             }));
-            sections.push({ name: "單字填空", kind: "spell", items });
+            sections.push({ name: "單字填空 Spelling", kind: "spell", items });
           }
           else if (t.id === "grammar") {
             const exPool = [];
@@ -662,25 +664,96 @@
         return items;
       }
 
+      /* 共用的出題規則文字 */
+      function aiRulesText() {
+        return "\n【最重要的出題規則】\n" +
+          "1. 單字選擇題：題幹必須是一個「完整的英文句子」，把要考的單字挖空成 ___，" +
+          "四個選項全部是英文單字。絕對不可以出「某單字的中文意思是什麼」這種題目。\n" +
+          "   範例：The weather is very ___ today, so we can play outside. (A) sunny (B) rainy (C) windy (D) cloudy\n" +
+          "2. 單字填空題：給一段「英文釋義」(definition in English)，學生依釋義拼出單字。" +
+          "可附首字母與字數提示。釋義必須用英文，不可用中文。\n" +
+          "   範例：Definition: not cold; having a high temperature.  Answer: h _ _ (3 letters)\n" +
+          "3. 文法選擇題：題幹是完整英文句子挖空，選項全英文。\n" +
+          "4. 中譯英題：給一個中文句子，學生翻成英文（這題型本來就含中文，屬正常）。\n" +
+          "5. 除了中譯英題的中文句子之外，所有題幹和選項一律使用英文，不要出現中文。\n" +
+          "6. 所有題目的單字與文法都必須落在指定的考試範圍內。\n";
+      }
+
+      /* 各題型各自的 JSON 格式說明 */
+      function aiTypeFormat(typeId) {
+        if (typeId === "vocab_mc")
+          return '{"items":[{"stem":"含 ___ 的完整英文句子","opts":["英文A","英文B","英文C","英文D"],"ai":0}]}';
+        if (typeId === "vocab_spell")
+          return '{"items":[{"stem":"英文釋義加首字母提示","answer":"正確單字"}]}';
+        if (typeId === "grammar")
+          return '{"items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]}';
+        return '{"items":[{"stem":"請翻譯成英文","zh":"中文句","answer":"英文翻譯"}]}';
+      }
+
+      /* 針對「單一題型、單一批次」呼叫 AI */
+      async function aiOneBatch(typeId, typeName, count, rangeText) {
+        const prompt = "你是台灣英語科出題老師。請依「" + stage + gradeLv + "」課程出題。\n" +
+          rangeText +
+          "本批請只出「" + typeName + "」這一種題型，共 " + count + " 題。\n" +
+          aiRulesText() +
+          "\n嚴格只輸出 JSON（不要任何其他文字）：\n" + aiTypeFormat(typeId) +
+          "\n難度符合台灣" + gradeLv + "。";
+        const data = await rawAI([{ role: "user", content: prompt }], 4000);
+        return (data.items || []);
+      }
+
       async function buildFromAI() {
         const { words, grammar, lessonNames } = scope;
-        const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
         const wordList = words.map((w) => w.en + "(" + w.zh + ")").join(", ");
         const grammarList = [...new Set(grammar.map((gr) => gr.point))].join("、");
-        const prompt = "你是台灣英語科出題老師。請依「" + stage + gradeLv + "」課程，為下列範圍出題。\n" +
+        const rangeText =
           "【考試範圍】課次：" + (lessonNames.join("、") || "（未指定）") + "\n" +
           "範圍單字：" + (wordList || "（未提供）") + "\n" +
-          "範圍文法：" + (grammarList || "（未提供）") + "\n" +
-          "題型與題數：" + chosen.map((t) => t.name + " " + typeCounts[t.id] + "題").join("、") + "。\n" +
-          "所有題目單字與文法都必須落在範圍內。文法題務必是具體英文句子挖空。\n" +
-          "嚴格只輸出 JSON：\n" +
-          '{"sections":[\n' +
-          ' {"name":"單字選擇","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},\n' +
-          ' {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},\n' +
-          ' {"name":"中譯英","kind":"translate","items":[{"stem":"說明","zh":"中文句","answer":"英文翻譯"}]}\n' +
-          "]}\n難度符合台灣" + gradeLv + "，每題4選項。";
+          "範圍文法：" + (grammarList || "（未提供）") + "\n";
 
-        return wrapSections(await rawAI([{ role: "user", content: prompt }], 4000));
+        const chosen = TYPES.filter((t) => typeCounts[t.id] > 0);
+        const BATCH = 12; /* 每批最多 12 題，安全不截斷 */
+        const sections = [];
+        let no = 0;
+
+        /* 逐題型處理，每題型內再分批 */
+        for (let ti = 0; ti < chosen.length; ti++) {
+          const t = chosen[ti];
+          const want = typeCounts[t.id];
+          let collected = [];
+
+          for (let got = 0; got < want; got += BATCH) {
+            const thisBatch = Math.min(BATCH, want - got);
+            setLoadMsg("AI 出題中…" + t.name + "（" +
+              Math.min(got + thisBatch, want) + "/" + want + "）");
+            const items = await aiOneBatch(t.id, t.name, thisBatch, rangeText);
+            collected = collected.concat(items);
+          }
+
+          /* 組成 section */
+          if (t.id === "translate") {
+            const arr = collected.slice(0, want).map((it) => ({
+              no: ++no, stem: it.stem || "請翻譯成英文",
+              zh: it.zh || "", answer: it.answer || "",
+            }));
+            sections.push({ name: t.name, kind: "translate", items: arr });
+          } else if (t.id === "vocab_spell") {
+            const arr = collected.slice(0, want).map((it) => ({
+              no: ++no, stem: it.stem || "", answer: it.answer || "",
+            }));
+            sections.push({ name: t.name, kind: "spell", items: arr });
+          } else {
+            const arr = collected.slice(0, want)
+              .filter((it) => it && it.stem && Array.isArray(it.opts))
+              .map((it) => ({
+                no: ++no, stem: it.stem, opts: it.opts,
+                ai: typeof it.ai === "number" ? it.ai : 0,
+              }));
+            sections.push({ name: t.name, kind: "mc", items: arr });
+          }
+        }
+
+        return { sections: sections, total: no, notes: [] };
       }
 
       async function buildFromUpload() {
@@ -688,11 +761,16 @@
         const instr = "你是台灣英語科出題老師。附件是一份老師上傳的英文考卷。" +
           "請先分析它的題型、難度與出題風格，然後「仿照同樣的風格與難度」出一份全新的考卷（題目不可與原卷重複）。\n" +
           "題型與題數：" + chosen.map((t) => t.name + " " + typeCounts[t.id] + "題").join("、") + "。\n" +
-          "文法題必須是具體英文句子挖空。\n嚴格只輸出 JSON：\n" +
+          "\n【最重要的出題規則】\n" +
+          "1. 單字選擇題：題幹必須是完整的英文句子並挖空成 ___，四個選項全部是英文。" +
+          "絕對不可以出「某單字的中文意思是什麼」這種題目。\n" +
+          "2. 文法選擇題：題幹是完整英文句子挖空，選項全英文。\n" +
+          "3. 除了中譯英題的中文句子之外，所有題幹與選項一律用英文，不要出現中文。\n" +
+          "\n嚴格只輸出 JSON：\n" +
           '{"sections":[\n' +
-          ' {"name":"單字選擇","kind":"mc","items":[{"stem":"題幹","opts":["A","B","C","D"],"ai":0}]},\n' +
+          ' {"name":"單字選擇","kind":"mc","items":[{"stem":"含 ___ 的完整英文句子","opts":["英文A","英文B","英文C","英文D"],"ai":0}]},\n' +
           ' {"name":"文法選擇","kind":"mc","items":[{"stem":"含 ___ 的英文句子","opts":["A","B","C","D"],"ai":0}]},\n' +
-          ' {"name":"中譯英","kind":"translate","items":[{"stem":"說明","zh":"中文句","answer":"英文翻譯"}]}\n' +
+          ' {"name":"中譯英","kind":"translate","items":[{"stem":"請翻譯成英文","zh":"中文句","answer":"英文翻譯"}]}\n' +
           "]}\n每題4選項。";
 
         const content = [];
@@ -816,15 +894,48 @@
 
         if (!text.startsWith("{")) {
           const s = text.indexOf("{");
-          const e = text.lastIndexOf("}");
-          if (s !== -1 && e !== -1 && e > s) text = text.slice(s, e + 1);
+          if (s !== -1) text = text.slice(s);
         }
 
-        try {
-          return JSON.parse(text);
-        } catch (e5) {
-          throw new Error("AI 回傳內容無法解析為題目。前 80 字：" + text.slice(0, 80));
+        /* 嘗試解析；若失敗，可能是 JSON 被截斷，試著修復 */
+        function tryParse(str) {
+          try { return JSON.parse(str); } catch (err) { return null; }
         }
+
+        let parsed = tryParse(text);
+
+        /* 修復一：截到最後一個完整的 } 為止 */
+        if (!parsed) {
+          const lastBrace = text.lastIndexOf("}");
+          if (lastBrace !== -1) {
+            parsed = tryParse(text.slice(0, lastBrace + 1));
+          }
+        }
+
+        /* 修復二：JSON 被截斷時，自動補上缺少的結尾括號 */
+        if (!parsed) {
+          let fixed = text;
+          /* 去掉結尾不完整的片段（最後一個逗號之後的殘字） */
+          const lastComma = fixed.lastIndexOf(",");
+          const lastClose = Math.max(fixed.lastIndexOf("}"), fixed.lastIndexOf("]"));
+          if (lastComma > lastClose) fixed = fixed.slice(0, lastComma);
+          /* 數一數還缺幾個 ] 和 } */
+          let openCurly = 0, openSquare = 0;
+          for (let i = 0; i < fixed.length; i++) {
+            const ch = fixed[i];
+            if (ch === "{") openCurly++;
+            else if (ch === "}") openCurly--;
+            else if (ch === "[") openSquare++;
+            else if (ch === "]") openSquare--;
+          }
+          while (openSquare-- > 0) fixed += "]";
+          while (openCurly-- > 0) fixed += "}";
+          parsed = tryParse(fixed);
+        }
+
+        if (parsed) return parsed;
+
+        throw new Error("AI 回傳內容無法解析（可能題目太長被截斷）。請減少題數後再試。前 80 字：" + text.slice(0, 80));
       }
 
       function wrapSections(parsed) {
@@ -1111,7 +1222,7 @@
                       <div style={S.stepper}>
                         <button style={S.stepBtn}
                           onClick={() => setCount(t.id, (typeCounts[t.id] || 0) - 1)}>－</button>
-                        <input type="number" min="0" max="20" value={typeCounts[t.id]}
+                        <input type="number" min="0" max="40" value={typeCounts[t.id]}
                           onChange={(e) => setCount(t.id, +e.target.value || 0)}
                           style={S.stepInput} />
                         <button style={S.stepBtn}
