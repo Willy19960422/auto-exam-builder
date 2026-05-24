@@ -519,6 +519,38 @@
       return stripMarkdown(text).trim();
     }
 
+    /* 把技術性的錯誤訊息，翻譯成老師看得懂的白話提示 */
+    function friendlyError(msg) {
+      const m = (msg || "").toLowerCase();
+      /* 額度用完 / 速率限制 */
+      if (m.indexOf("429") !== -1 || m.indexOf("quota") !== -1 ||
+          m.indexOf("rate limit") !== -1 || m.indexOf("exceeded") !== -1) {
+        return "今天的 AI 免費出題次數已經用完囉。\n" +
+          "免費額度每天會自動重置，請明天再試；\n" +
+          "若剛才連續出了很多份考卷，也可以等 10～30 分鐘後再試一次。\n" +
+          "（這不是程式故障，是 Google 免費方案的用量限制）";
+      }
+      /* 金鑰問題 */
+      if (m.indexOf("api key") !== -1 || m.indexOf("api_key") !== -1 ||
+          m.indexOf("invalid") !== -1 || m.indexOf("expired") !== -1 ||
+          m.indexOf("permission") !== -1) {
+        return "AI 金鑰似乎有問題（可能過期或設定錯誤）。\n" +
+          "請檢查 GAS 中的 Gemini 金鑰是否正確、是否已重新部署。";
+      }
+      /* 伺服器忙碌 / 暫時性問題 */
+      if (m.indexOf("503") !== -1 || m.indexOf("500") !== -1 ||
+          m.indexOf("overloaded") !== -1 || m.indexOf("unavailable") !== -1) {
+        return "AI 服務目前忙碌中，這是暫時的狀況。\n請稍等一兩分鐘後再按一次「產生考卷」。";
+      }
+      /* 內容被安全機制擋下 */
+      if (m.indexOf("safety") !== -1 || m.indexOf("blocked") !== -1) {
+        return "這次的出題內容被 AI 的安全機制擋下了。\n請換個課次範圍、或減少題數後再試一次。";
+      }
+      /* 其他無法歸類的：仍給原訊息，但加白話開頭 */
+      return "AI 出題遇到問題。\n可以再試一次，或改用「內建題庫」模式。\n" +
+        "（技術訊息：" + (msg || "未知").slice(0, 120) + "）";
+    }
+
     function App() {
       /* 一開啟什麼都不選，全部由使用者自己挑 */
       const [versions, setVersions] = useState(new Set());
@@ -954,7 +986,7 @@
         if (!res.ok) {
           let detail = "";
           try { detail = (await res.text()).slice(0, 300); } catch (e2) {}
-          throw new Error("中繼站回應 HTTP " + res.status + "。" + detail);
+          throw new Error(friendlyError("HTTP " + res.status + " " + detail));
         }
 
         let raw;
@@ -976,10 +1008,10 @@
 
         if (data.error) {
           const m = (data.error && data.error.message) ? data.error.message : JSON.stringify(data.error);
-          throw new Error("AI 服務錯誤：" + m);
+          throw new Error(friendlyError(m));
         }
         if (data.type === "error") {
-          throw new Error("AI 服務錯誤：" + JSON.stringify(data));
+          throw new Error(friendlyError(JSON.stringify(data)));
         }
 
         /* 取出 AI 回覆文字：相容多種可能的回傳結構 */
@@ -1595,7 +1627,9 @@
         color: "#fff", background: C.ink, border: "2px solid " + C.ink,
         padding: "13px 32px", cursor: "pointer", boxShadow: "5px 5px 0 " + C.gold },
       checkbox: { fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center" },
-      error: { color: "#a3402c", fontSize: 13, marginTop: 10, lineHeight: 1.7 },
+      error: { color: "#a3402c", fontSize: 13, marginTop: 10, lineHeight: 1.7,
+        whiteSpace: "pre-line", background: "#fbeae7",
+        border: "1px solid #e3b5ad", padding: "10px 13px", borderRadius: 4 },
       warn: { color: "#a3402c", fontSize: 13, marginBottom: 12 },
       toolbar: { display: "flex", gap: 11, marginBottom: 16, flexWrap: "wrap" },
       toolBtn: { fontFamily: "inherit", fontWeight: 700, fontSize: 14, color: "#fff",
