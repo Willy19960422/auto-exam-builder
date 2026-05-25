@@ -326,6 +326,235 @@
         },
       },
     };
+    /* ===== 翰林版 國小英語（依台南市學習網課程地圖建置，真實課程） ===== */
+    const EL_HANLIN = {
+      "國小三年級": {
+        "第一冊（三上）": {
+          "Unit 1 Hello!": L("自我介紹",
+            [{ en: "Dino", zh: "迪諾（人名）" }, { en: "Danny", zh: "丹尼（人名）" },
+             { en: "Irene", zh: "艾琳（人名）" }, { en: "Niki", zh: "妮琪（人名）" },
+             { en: "Owen", zh: "歐文（人名）" }, { en: "name", zh: "名字" },
+             { en: "hello", zh: "哈囉" }, { en: "goodbye", zh: "再見" }],
+            [
+              g("What's your name? 詢問姓名", [
+                { q: "___ your name? — My name is Dino.", c: ["What's", "Who's", "How's", "Where's"], a: 0 },
+                { q: "What's your name? — ___ name is Danny.", c: ["My", "Your", "His", "Her"], a: 0 }]),
+              g("I'm + 名字", [
+                { q: "Hello! ___ Niki.", c: ["I'm", "You're", "He's", "It's"], a: 0 }]),
+            ]),
+          "Unit 3 What's This?": L("教室常見物品",
+            [{ en: "book", zh: "書" }, { en: "pencil", zh: "鉛筆" }, { en: "eraser", zh: "橡皮擦" },
+             { en: "bag", zh: "書包" }, { en: "marker", zh: "麥克筆" }, { en: "ruler", zh: "尺" }],
+            [
+              g("What's this/that? 詢問物品", [
+                { q: "___ this? — It's a book.", c: ["What's", "Who's", "How's", "Whose"], a: 0 },
+                { q: "What's that? — ___ a ruler.", c: ["It's", "I'm", "He's", "She's"], a: 0 }]),
+              g("a / an 的用法", [
+                { q: "It's ___ eraser.", c: ["an", "a", "the", "/"], a: 0 },
+                { q: "It's ___ pencil.", c: ["a", "an", "the", "/"], a: 0 }]),
+            ]),
+          "Unit 4 What Color Is It?": L("顏色",
+            [{ en: "blue", zh: "藍色" }, { en: "green", zh: "綠色" }, { en: "red", zh: "紅色" },
+             { en: "black", zh: "黑色" }, { en: "pink", zh: "粉紅色" }, { en: "yellow", zh: "黃色" }],
+            [
+              g("What color is it? 詢問顏色", [
+                { q: "What ___ is it? — It's blue.", c: ["color", "name", "time", "day"], a: 0 },
+                { q: "What color is it? — ___ red.", c: ["It's", "I'm", "They're", "He's"], a: 0 }]),
+            ]),
+        },
+        "第二冊（三下）": {
+          "Unit 1 Is It a Cat?": L("寵物",
+            [{ en: "dog", zh: "狗" }, { en: "cat", zh: "貓" }, { en: "bird", zh: "鳥" },
+             { en: "fish", zh: "魚" }, { en: "pig", zh: "豬" }, { en: "rabbit", zh: "兔子" }],
+            [
+              g("Is it...? Yes/No 問答", [
+                { q: "___ it a cat? — Yes, it is.", c: ["Is", "Are", "Am", "Do"], a: 0 },
+                { q: "Is it a dog? — No, it ___.", c: ["isn't", "aren't", "not", "don't"], a: 0 }]),
+            ]),
+          "Unit 2 Is It Big?": L("外形",
+            [{ en: "small", zh: "小的" }, { en: "big", zh: "大的" }, { en: "tall", zh: "高的" },
+             { en: "short", zh: "矮的" }, { en: "fat", zh: "胖的" }, { en: "thin", zh: "瘦的" }],
+            [
+              g("Is it big? 形容外形", [
+                { q: "Is it ___? — No, it isn't. It's fat.", c: ["thin", "big", "tall", "small"], a: 0 },
+                { q: "___ it big? — Yes, it is.", c: ["Is", "Are", "Does", "Do"], a: 0 }]),
+            ]),
+          "Unit 3 Who's She?": L("介紹家人",
+            [{ en: "father", zh: "父親" }, { en: "mother", zh: "母親" }, { en: "brother", zh: "兄弟" },
+             { en: "sister", zh: "姊妹" }, { en: "grandpa", zh: "爺爺" }, { en: "grandma", zh: "奶奶" }],
+            [
+              g("Who's he/she? 介紹家人", [
+                { q: "___ she? — She's my mother.", c: ["Who's", "What's", "How's", "Where's"], a: 0 },
+                { q: "Who's he? — ___ my father.", c: ["He's", "She's", "It's", "I'm"], a: 0 }]),
+            ]),
+          "Unit 4 Is He a Teacher?": L("職業",
+            [{ en: "student", zh: "學生" }, { en: "teacher", zh: "老師" }, { en: "doctor", zh: "醫生" },
+             { en: "nurse", zh: "護士" }, { en: "cook", zh: "廚師" }],
+            [
+              g("Are you...? / Is he...? 職業問答", [
+                { q: "Are you a student? — Yes, I ___.", c: ["am", "is", "are", "do"], a: 0 },
+                { q: "___ he a teacher? — Yes, he is.", c: ["Is", "Are", "Am", "Do"], a: 0 }]),
+            ]),
+        },
+      },
+      "國小四年級": {
+        "第三冊（四上）": {
+          "Unit 1 Are You Happy?": L("感覺",
+            [{ en: "angry", zh: "生氣的" }, { en: "thirsty", zh: "口渴的" }, { en: "happy", zh: "快樂的" },
+             { en: "hungry", zh: "飢餓的" }, { en: "sad", zh: "難過的" }, { en: "sick", zh: "生病的" },
+             { en: "tired", zh: "疲倦的" }],
+            [
+              g("Are you happy? 詢問感覺", [
+                { q: "Are you happy? — Yes, I ___.", c: ["am", "is", "are", "do"], a: 0 },
+                { q: "Is he sad? — No, he ___.", c: ["isn't", "aren't", "not", "doesn't"], a: 0 }]),
+            ]),
+          "Unit 2 Can You Swim?": L("能力",
+            [{ en: "dance", zh: "跳舞" }, { en: "draw", zh: "畫畫" }, { en: "fly", zh: "飛" },
+             { en: "jump", zh: "跳" }, { en: "read", zh: "閱讀" }, { en: "sing", zh: "唱歌" },
+             { en: "swim", zh: "游泳" }],
+            [
+              g("Can you...? 詢問能力", [
+                { q: "___ you swim? — Yes, I can.", c: ["Can", "Are", "Do", "Is"], a: 0 },
+                { q: "Can he sing? — No, he ___.", c: ["can't", "isn't", "doesn't", "don't"], a: 0 }]),
+            ]),
+          "Unit 3 What Are These?": L("水果",
+            [{ en: "apples", zh: "蘋果" }, { en: "bananas", zh: "香蕉" }, { en: "grapes", zh: "葡萄" },
+             { en: "oranges", zh: "柳橙" }, { en: "papayas", zh: "木瓜" }, { en: "watermelons", zh: "西瓜" }],
+            [
+              g("What are these/those? 複數問答", [
+                { q: "What are these? — ___ papayas.", c: ["They're", "It's", "He's", "I'm"], a: 0 },
+                { q: "Do you like papayas? — Yes, I ___.", c: ["do", "am", "is", "does"], a: 0 }]),
+            ]),
+          "Unit 4 What Do You Want?": L("食物",
+            [{ en: "hot dog", zh: "熱狗" }, { en: "egg", zh: "蛋" }, { en: "bread", zh: "麵包" },
+             { en: "juice", zh: "果汁" }, { en: "milk", zh: "牛奶" }, { en: "tea", zh: "茶" }],
+            [
+              g("What do you want? 表達想要", [
+                { q: "What do you want? — I ___ a hot dog.", c: ["want", "wants", "wanting", "am want"], a: 0 },
+                { q: "I want ___ egg.", c: ["an", "a", "the", "/"], a: 0 }]),
+            ]),
+        },
+        "第四冊（四下）": {
+          "Unit 1 What Time Is It?": L("時間",
+            [{ en: "twenty", zh: "二十" }, { en: "thirty", zh: "三十" }, { en: "forty", zh: "四十" },
+             { en: "fifty", zh: "五十" }, { en: "o'clock", zh: "點鐘" }],
+            [
+              g("What time is it? 詢問時間", [
+                { q: "What ___ is it? — It's ten o'clock.", c: ["time", "color", "day", "name"], a: 0 },
+                { q: "What time is it? — ___ eleven thirty.", c: ["It's", "I'm", "They're", "He's"], a: 0 }]),
+            ]),
+          "Unit 2 What Are You Doing?": L("動作",
+            [{ en: "drinking", zh: "喝（進行式）" }, { en: "eating", zh: "吃（進行式）" },
+             { en: "reading", zh: "閱讀（進行式）" }, { en: "sleeping", zh: "睡覺（進行式）" },
+             { en: "writing", zh: "寫（進行式）" }, { en: "running", zh: "跑（進行式）" },
+             { en: "swimming", zh: "游泳（進行式）" }],
+            [
+              g("現在進行式 What are you doing?", [
+                { q: "What are you doing? — I'm ___.", c: ["eating", "eat", "eats", "ate"], a: 0 },
+                { q: "What's he doing? — He's ___.", c: ["swimming", "swim", "swims", "swam"], a: 0 }]),
+            ]),
+          "Unit 3 Where Are You?": L("房間名稱",
+            [{ en: "bathroom", zh: "浴室" }, { en: "bedroom", zh: "臥室" }, { en: "dining room", zh: "餐廳" },
+             { en: "kitchen", zh: "廚房" }, { en: "living room", zh: "客廳" }, { en: "yard", zh: "庭院" }],
+            [
+              g("Where are you? 詢問所在", [
+                { q: "Where are you? — I'm ___ the bathroom.", c: ["in", "on", "under", "at"], a: 0 },
+                { q: "Where's Danny? — ___ in the kitchen.", c: ["He's", "She's", "It's", "I'm"], a: 0 }]),
+            ]),
+          "Unit 4 Where's My Kite?": L("位置",
+            [{ en: "ball", zh: "球" }, { en: "box", zh: "盒子" }, { en: "chair", zh: "椅子" },
+             { en: "desk", zh: "書桌" }, { en: "key", zh: "鑰匙" }, { en: "kite", zh: "風箏" },
+             { en: "table", zh: "桌子" }],
+            [
+              g("位置介系詞 in/on/under/next to", [
+                { q: "Where's my kite? — It's ___ the box.", c: ["in", "am", "is", "do"], a: 0 },
+                { q: "The ball is ___ the table.", c: ["under", "am", "is", "are"], a: 0 }]),
+            ]),
+        },
+      },
+      "國小五年級": {
+        "第五冊（五上）": {
+          "Unit 1 How's the Weather?": L("天氣與休閒活動",
+            [{ en: "cloudy", zh: "多雲的" }, { en: "rainy", zh: "下雨的" }, { en: "snowy", zh: "下雪的" },
+             { en: "sunny", zh: "晴朗的" }, { en: "windy", zh: "有風的" }, { en: "go camping", zh: "去露營" },
+             { en: "go fishing", zh: "去釣魚" }, { en: "go shopping", zh: "去購物" },
+             { en: "go swimming", zh: "去游泳" }],
+            [
+              g("How's the weather? 詢問天氣", [
+                { q: "___ the weather? — It's sunny.", c: ["How's", "What's", "Who's", "Where's"], a: 0 },
+                { q: "How's the weather? — ___ rainy.", c: ["It's", "I'm", "They're", "He's"], a: 0 }]),
+              g("can / can't 表達能否", [
+                { q: "We ___ go fishing today. It's sunny.", c: ["can", "are", "do", "is"], a: 0 }]),
+            ]),
+          "Unit 2 Where Are You Going?": L("社區場所",
+            [{ en: "bank", zh: "銀行" }, { en: "bookstore", zh: "書店" }, { en: "hospital", zh: "醫院" },
+             { en: "library", zh: "圖書館" }, { en: "park", zh: "公園" }, { en: "post office", zh: "郵局" },
+             { en: "supermarket", zh: "超級市場" }, { en: "zoo", zh: "動物園" }],
+            [
+              g("Where are you going? 詢問去處", [
+                { q: "Where are you going? — I'm going ___ the park.", c: ["to", "in", "at", "on"], a: 0 },
+                { q: "Where's the supermarket? — It's ___ Blue Street.", c: ["on", "in", "at", "to"], a: 0 }]),
+            ]),
+          "Unit 3 How Many Lions Are There?": L("動物",
+            [{ en: "bear", zh: "熊" }, { en: "elephant", zh: "大象" }, { en: "horse", zh: "馬" },
+             { en: "lion", zh: "獅子" }, { en: "monkey", zh: "猴子" }, { en: "tiger", zh: "老虎" },
+             { en: "turtle", zh: "烏龜" }, { en: "zebra", zh: "斑馬" }],
+            [
+              g("How many...? There is/are", [
+                { q: "How many tigers are there? — There ___ two tigers.", c: ["are", "is", "am", "be"], a: 0 },
+                { q: "How many horses are there? — There ___ one horse.", c: ["is", "are", "am", "be"], a: 0 }]),
+            ]),
+          "Unit 4 What's Wrong?": L("身體部位",
+            [{ en: "arms", zh: "手臂" }, { en: "ears", zh: "耳朵" }, { en: "eyes", zh: "眼睛" },
+             { en: "foot", zh: "腳" }, { en: "feet", zh: "腳（複數）" }, { en: "hands", zh: "手" },
+             { en: "legs", zh: "腿" }, { en: "headache", zh: "頭痛" }, { en: "toothache", zh: "牙痛" }],
+            [
+              g("What's wrong? 描述身體不適", [
+                { q: "What's wrong? — My leg ___.", c: ["hurts", "hurt", "hurting", "is hurt"], a: 0 },
+                { q: "He ___ a toothache.", c: ["has", "have", "is", "are"], a: 0 }]),
+            ]),
+        },
+        "第六冊（五下）": {
+          "Unit 1 What Day Is Today?": L("星期",
+            [{ en: "Sunday", zh: "星期日" }, { en: "Monday", zh: "星期一" }, { en: "Tuesday", zh: "星期二" },
+             { en: "Wednesday", zh: "星期三" }, { en: "Thursday", zh: "星期四" },
+             { en: "Friday", zh: "星期五" }, { en: "Saturday", zh: "星期六" }],
+            [
+              g("What day is today? 詢問星期", [
+                { q: "What day is today? — ___ Wednesday.", c: ["It's", "I'm", "They're", "He's"], a: 0 },
+                { q: "Is it Monday today? — No, it ___. It's Tuesday.", c: ["isn't", "aren't", "not", "doesn't"], a: 0 }]),
+            ]),
+          "Unit 2 What Do You Want for Dinner?": L("三餐與點餐",
+            [{ en: "breakfast", zh: "早餐" }, { en: "lunch", zh: "午餐" }, { en: "dinner", zh: "晚餐" },
+             { en: "hamburger", zh: "漢堡" }, { en: "noodles", zh: "麵" }, { en: "rice", zh: "飯" },
+             { en: "salad", zh: "沙拉" }, { en: "soup", zh: "湯" }],
+            [
+              g("want / wants 表達想要", [
+                { q: "What do you want for dinner? — I ___ some noodles.", c: ["want", "wants", "wanting", "am want"], a: 0 },
+                { q: "What does he want for dinner? — He ___ a hamburger.", c: ["wants", "want", "wanting", "is want"], a: 0 }]),
+            ]),
+          "Unit 3 Do You Have PE Class on Monday?": L("學校課程",
+            [{ en: "art", zh: "美術" }, { en: "Chinese", zh: "國語" }, { en: "English", zh: "英語" },
+             { en: "math", zh: "數學" }, { en: "music", zh: "音樂" }, { en: "PE", zh: "體育" },
+             { en: "science", zh: "自然" }, { en: "social studies", zh: "社會" }],
+            [
+              g("Do/Does have 詢問課程", [
+                { q: "Do you have PE class on Monday? — Yes, I ___.", c: ["do", "does", "am", "are"], a: 0 },
+                { q: "Does he have art class? — Yes, he ___.", c: ["does", "do", "is", "has"], a: 0 }]),
+            ]),
+          "Unit 4 Whose Workbook Is This?": L("物品與主人",
+            [{ en: "cap", zh: "帽子" }, { en: "umbrella", zh: "雨傘" }, { en: "wallet", zh: "皮夾" },
+             { en: "workbook", zh: "作業簿" }, { en: "backpack", zh: "後背包" }, { en: "glasses", zh: "眼鏡" },
+             { en: "gloves", zh: "手套" }, { en: "socks", zh: "襪子" }],
+            [
+              g("Whose...? 詢問所有者", [
+                { q: "___ cap is this? — It's my cap.", c: ["Whose", "Who's", "What's", "Where's"], a: 0 },
+                { q: "Whose glasses are these? — They're ___ glasses.", c: ["Tom's", "Tom", "Toms", "of Tom"], a: 0 }]),
+            ]),
+        },
+      },
+    };
+
     const SH = {
       "高中一年級": {
         "第一冊（上學期）": {
@@ -443,7 +672,7 @@
     };
     const CURRICULUM = {
       "康軒版": { "國小": EL, "國中": JH, "高中": SH },
-      "翰林版": { "國小": EL, "國中": JH, "高中": SH },
+      "翰林版": { "國小": EL_HANLIN, "國中": JH, "高中": SH },
       "南一版": { "國小": EL, "國中": JH, "高中": SH },
     };
 
